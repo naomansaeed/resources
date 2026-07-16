@@ -85,19 +85,24 @@
     </main>
     <script>
         document.getElementById('exit-btn').addEventListener('click', () => {
-        
-        window.close();
-    
-    // Fallback: browser blocked the close
+    // 1️⃣ Attempt to go back in browser history first
+    window.history.back();
+
+    // 2️⃣ If navigation failed (or no history exists), try closing the tab
     setTimeout(() => {
-      if (!window.closed) {
-        const btn = document.getElementById('exit-btn');
-        btn.textContent = "Please close this tab manually";
-        btn.disabled = true;
-        btn.style.opacity = "0.5";
-        btn.style.cursor = "not-allowed";
-      }
-    }, 500);
+      window.close();
+
+      // 3️⃣ If the browser blocked the close, show manual instructions
+      setTimeout(() => {
+        if (!window.closed) {
+          const btn = document.getElementById('exit-btn');
+          btn.textContent = "Please close this tab manually";
+          btn.disabled = true;
+          btn.style.opacity = "0.5";
+          btn.style.cursor = "not-allowed";
+        }
+      }, 150);
+    }, 150);
   });
     </script>
 </body>
