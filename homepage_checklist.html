@@ -1,374 +1,863 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Homepage Credibility Checklist | Trogdyne</title>
-    <style>
-        /* =========================================
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>The Homepage Credibility Checklist | Trogdyne</title>
+        <style>
+            /* =========================================
            1. GLOBAL & SCREEN STYLES
            ========================================= */
-        :root {
-            --color-bg: #fafaf9;
-            --color-surface: #ffffff;
-            --color-text: #1c1917;
-            --color-text-muted: #57534e;
-            --color-border: #e7e5e4;
-            --color-primary: #5f7c6b;
-            --color-primary-hover: #4a6355;
-            --color-accent: #c9a882;
-            --font-heading: 'Space Grotesk', system-ui, sans-serif;
-            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: var(--font-body);
-            color: var(--color-text);
-            background-color: var(--color-bg);
-            line-height: 1.6;
-            padding: 2rem;
-        }
-
-        .checklist-container {
-            max-width: 210mm;
-            margin: 0 auto;
-            background: var(--color-surface);
-            padding: 3rem;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-        }
-
-        /* Header */
-        .header { text-align: center; margin-bottom: 2.5rem; border-bottom: 2px solid var(--color-primary); padding-bottom: 1.5rem; }
-        .header h1 { font-family: var(--font-heading); font-size: 2.25rem; color: var(--color-primary); margin-bottom: 0.5rem; }
-        .header h2 { font-family: var(--font-heading); font-size: 1.1rem; font-weight: 500; color: var(--color-text-muted); margin-bottom: 1rem; }
-        .header .author { font-size: 0.9rem; color: var(--color-text-muted); font-style: italic; }
-
-        /* Instructions */
-        .instructions { background: #f0f4f1; padding: 1.25rem; border-radius: 8px; margin-bottom: 2rem; border-left: 4px solid var(--color-primary); }
-        .instructions p { font-size: 0.95rem; color: var(--color-text); }
-
-        /* Live Counter (Sticky Badge) */
-        .live-counter {
-            position: sticky;
-            top: 2rem;
-            background: var(--color-primary);
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 50px;
-            font-family: var(--font-heading);
-            font-weight: 600;
-            font-size: 1.1rem;
-            text-align: center;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 12px rgba(95, 124, 107, 0.3);
-            z-index: 100;
-            transition: all 0.3s ease;
-        }
-        .live-counter .count-number {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 0 0.25rem;
-        }
-        .live-counter.excellent { background: var(--color-primary); }
-        .live-counter.good { background: var(--color-accent); color: var(--color-text); }
-        .live-counter.critical { background: #dc2626; }
-
-        /* Sections */
-        .section { margin-bottom: 2rem; page-break-inside: avoid; }
-        .section-title { font-family: var(--font-heading); font-size: 1.25rem; color: var(--color-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
-        .section-title::before { content: ''; display: inline-block; width: 8px; height: 8px; background: var(--color-accent); border-radius: 50%; }
-
-        /* Checklist Items */
-        .checklist-item { display: flex; gap: 1rem; margin-bottom: 1.25rem; page-break-inside: avoid; }
-        .checkbox-wrapper { flex-shrink: 0; margin-top: 0.25rem; }
-        .checkbox-wrapper input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--color-primary); cursor: pointer; }
-        .item-content { flex: 1; }
-        .item-title { font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem; display: block; }
-        .item-desc { font-size: 0.9rem; color: var(--color-text-muted); }
-
-        /* Scoring (Dynamic) */
-        .scoring { background: var(--color-bg); padding: 1.5rem; border-radius: 8px; margin: 2rem 0; border: 1px solid var(--color-border); }
-        .scoring h3 { font-family: var(--font-heading); font-size: 1.1rem; margin-bottom: 0.75rem; }
-        .scoring ul { list-style: none; padding-left: 0; }
-        .scoring li { margin-bottom: 0.5rem; font-size: 0.95rem; padding: 0.5rem; border-radius: 6px; transition: all 0.3s ease; }
-        .scoring li strong { color: var(--color-primary); }
-        .scoring li.active { background: rgba(95, 124, 107, 0.1); border-left: 3px solid var(--color-primary); }
-        .scoring li.excellent { background: rgba(95, 124, 107, 0.15); border-left: 4px solid var(--color-primary); }
-        .scoring li.good { background: rgba(201, 168, 130, 0.15); border-left: 4px solid var(--color-accent); }
-        .scoring li.critical { background: rgba(220, 38, 38, 0.1); border-left: 4px solid #dc2626; }
-
-        /* CTA */
-        .cta-box { text-align: center; margin-top: 2.5rem; padding-top: 2rem; border-top: 2px dashed var(--color-border); }
-        .cta-box h3 { font-family: var(--font-heading); font-size: 1.5rem; margin-bottom: 0.75rem; }
-        .cta-box p { font-size: 1rem; color: var(--color-text-muted); margin-bottom: 1.5rem; max-width: 600px; margin-left: auto; margin-right: auto; }
-        .cta-button { 
-            display: inline-block; background: var(--color-primary); color: white; text-decoration: none; 
-            padding: 1rem 2rem; border-radius: 50px; font-family: var(--font-heading); font-weight: 600; 
-            transition: background 0.25s ease; 
-        }
-        .cta-button:hover { background: var(--color-primary-hover); }
-        .footer { text-align: center; margin-top: 2rem; font-size: 0.8rem; color: var(--color-text-muted); }
-
-        /* Print Button (Screen Only) */
-        .print-btn {
-            position: fixed; bottom: 2rem; right: 2rem; background: var(--color-accent); color: var(--color-text);
-            border: none; padding: 1rem 1.5rem; border-radius: 50px; font-family: var(--font-heading); font-weight: 600;
-            cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 0.5rem;
-            transition: transform 0.2s ease;
-        }
-        .print-btn:hover { transform: translateY(-2px); background: #b89570; }
-
-        /* =========================================
-           2. PRINT-SPECIFIC STYLES (@media print)
-           ========================================= */
-        @media print {
-            body { background: white; padding: 0; color: black; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .checklist-container { box-shadow: none; padding: 0; max-width: 100%; border-radius: 0; }
-            .print-btn { display: none !important; }
-            .live-counter { position: static; box-shadow: none; background-color: var(--color-bg) !important; color: var(--color-text);}
-            .instructions { background: #f0f4f1 !important; -webkit-print-color-adjust: exact; }
-            .scoring { background: #fafaf9 !important; -webkit-print-color-adjust: exact; }
-            .scoring li { background: none !important; border-left: none !important; }
-            .cta-button { border: 2px solid var(--color-primary); color: var(--color-primary); background: white !important; }
-            .section { page-break-inside: avoid; }
-            .checklist-item { page-break-inside: avoid; }
-            a { text-decoration: none; color: var(--color-primary); }
-            input[type="checkbox"] { border: 1px solid #000; appearance: none; width: 16px; height: 16px; }
-        }
-    </style>
-</head>
-<body>
-
-    <button class="print-btn no-print" onclick="window.print()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-        Print or Save as PDF
-    </button>
-
-    <div class="checklist-container">
-        <div class="header">
-            <h1>The Homepage Credibility Checklist</h1>
-            <h2>15 Essential, Objective Tests Every Service Business Homepage Must Pass</h2>
-            <p class="author">By Naoman Saeed, Founder of Trogdyne</p>
-        </div>
-
-        <div class="instructions">
-            <p><strong>How to use this checklist:</strong> Don't guess. Test. Go through each of the 15 items below and perform the exact "How to check" action. Be brutally honest. Check the box if you pass. The counter below will update in real-time to show your score.</p>
-        </div>
-
-        <!-- LIVE COUNTER -->
-        <div class="live-counter" id="live-counter">
-            Your Score: <span class="count-number" id="count-number">0</span> / 15
-        </div>
-
-        <!-- SECTION 1 -->
-        <div class="section">
-            <h3 class="section-title">Section 1: First Impressions & Visual Trust</h3>
-            
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q1" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q1">1. The 3-Second Clarity Test</label>
-                    <p class="item-desc"><strong>How to check:</strong> Open your homepage. Read only the largest text (the H1 heading). Does it state exactly what you do and who you serve in under 10 words, without requiring the user to scroll?</p>
-                </div>
-            </div>
-
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q2" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q2">2. The Mobile Thumb Test</label>
-                    <p class="item-desc"><strong>How to check:</strong> Open your site on your actual smartphone. Is your primary "Book Now" or "Contact" button visible <em>without scrolling</em>, and can you tap it easily with your thumb?</p>
-                </div>
-            </div>
-
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q3" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q3">3. The Speed Benchmark</label>
-                    <p class="item-desc"><strong>How to check:</strong> Paste your homepage URL into Google PageSpeed Insights (pagespeed.web.dev). Is your "Mobile" performance score 80 or higher?</p>
-                </div>
-            </div>
-
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q4" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q4">4. The Navigation Simplicity Test</label>
-                    <p class="item-desc"><strong>How to check:</strong> Count the items in your main desktop navigation menu. Are there 5 or fewer items (e.g., Home, Services, About, Projects, Contact)?</p>
-                </div>
-            </div>
-
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q5" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q5">5. The Authentic Imagery Check</label>
-                    <p class="item-desc"><strong>How to check:</strong> Look at the photos on your homepage. Are they authentic photos of your actual business, team, or work, rather than generic, recognizable stock photography?</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 2 -->
-        <div class="section">
-            <h3 class="section-title">Section 2: Content & Communication</h3>
-            
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q6" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q6">6. The Frictionless Contact Test</label>
-                    <p class="item-desc"><strong>How to check:</strong> Starting from your homepage, count the clicks required to find your email address or a contact form. Is it 2 clicks or fewer?</p>
-                </div>
-            </div>
-
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q7" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q7">7. The Social Proof Requirement</label>
-                    <p class="item-desc"><strong>How to check:</strong> Scroll through your homepage. Do you have at least 2 verifiable client testimonials, case study snippets, or recognizable client logos displayed prominently?</p>
-                </div>
-            </div>
-
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q8" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q8">8. The Human Connection Check</label>
-                    <p class="item-desc"><strong>How to check:</strong> Is there a photo of you or your team, along with a brief, personal "About" statement, visible directly on the homepage?</p>
-                </div>
-            </div>
-
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q9" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q9">9. The Typography Discipline Test</label>
-                    <p class="item-desc"><strong>How to check:</strong> Review your entire homepage. Are you using no more than 2 distinct font families (e.g., one for headings, one for body text)?</p>
-                </div>
-            </div>
-
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q10" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q10">10. The Security Baseline</label>
-                    <p class="item-desc"><strong>How to check:</strong> Look at your website's URL in the browser bar. Does it start with <code>https://</code> and display a padlock icon?</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 3 -->
-        <div class="section">
-            <h3 class="section-title">Section 3: Conversion & User Experience</h3>
-            
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q11" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q11">11. The Single Primary CTA Rule</label>
-                    <p class="item-desc"><strong>How to check:</strong> Look at the bottom of your homepage. Is there exactly ONE dominant, visually distinct call-to-action button telling the user exactly what to do next?</p>
-                </div>
-            </div>
-
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q12" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q12">12. The Form Friction Test</label>
-                    <p class="item-desc"><strong>How to check:</strong> Open your contact form. Does it take fewer than 60 seconds to fill out, requiring no more than Name, Email, and a Message?</p>
-                </div>
-            </div>
-
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q13" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q13">13. The Broken Link Audit</label>
-                    <p class="item-desc"><strong>How to check:</strong> Click every single link in your main navigation, footer, and body text. Do they all load the correct page instantly without a "404 Not Found" error?</p>
-                </div>
-            </div>
-
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q14" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q14">14. The "Template Trap" Check</label>
-                    <p class="item-desc"><strong>How to check:</strong> Does your site feature custom brand colors and intentional spacing that clearly deviate from the default, out-of-the-box settings of Wix, Squarespace, or standard themes?</p>
-                </div>
-            </div>
-
-            <div class="checklist-item">
-                <div class="checkbox-wrapper"><input type="checkbox" id="q15" class="checklist-checkbox"></div>
-                <div class="item-content">
-                    <label class="item-title" for="q15">15. The Legal Compliance Check</label>
-                    <p class="item-desc"><strong>How to check:</strong> Scroll to your website footer. Is there a clearly visible, clickable link to your Privacy Policy?</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- DYNAMIC SCORING -->
-        <div class="scoring">
-            <h3>How Did You Score?</h3>
-            <ul id="scoring-list">
-                <li id="score-excellent"><strong>13–15 "Yes" Answers:</strong> Excellent. Your foundation is solid. Focus on scaling your traffic.</li>
-                <li id="score-good"><strong>8–12 "Yes" Answers:</strong> Good, but you have hidden friction points that are silently turning away potential clients.</li>
-                <li id="score-critical"><strong>7 or Fewer "Yes" Answers:</strong> Critical. Your website is likely damaging your brand credibility and leaking revenue.</li>
-            </ul>
-        </div>
-
-        <!-- CTA -->
-        <div class="cta-box">
-            <h3>Too Busy to Audit or Fix This Yourself?</h3>
-            <p>If you checked "No" to more than a few of these items, you don't need a Band-Aid fix. You need a strategic, bespoke digital ecosystem. Skip the DIY guesswork.</p>
-            <a href="https://trogdyne.com/qualification/" class="cta-button" target="_blank">Take the 2-Minute Readiness Quiz</a>
-        </div>
-
-        <div class="footer">
-            © 2026 Trogdyne. All rights reserved. | contact@trogdyne.com | trogdyne.com
-        </div>
-    </div>
-
-    <!-- INTERACTIVE JAVASCRIPT -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const checkboxes = document.querySelectorAll('.checklist-checkbox');
-            const countNumber = document.getElementById('count-number');
-            const liveCounter = document.getElementById('live-counter');
-            const scoreExcellent = document.getElementById('score-excellent');
-            const scoreGood = document.getElementById('score-good');
-            const scoreCritical = document.getElementById('score-critical');
-
-            function updateScore() {
-                const checkedCount = document.querySelectorAll('.checklist-checkbox:checked').length;
-                
-                // Update counter
-                countNumber.textContent = checkedCount;
-                
-                // Update counter color based on score
-                liveCounter.classList.remove('excellent', 'good', 'critical');
-                if (checkedCount >= 13) {
-                    liveCounter.classList.add('excellent');
-                } else if (checkedCount >= 8) {
-                    liveCounter.classList.add('good');
-                } else {
-                    liveCounter.classList.add('critical');
-                }
-                
-                // Update scoring section highlights
-                scoreExcellent.classList.remove('active', 'excellent', 'good', 'critical');
-                scoreGood.classList.remove('active', 'excellent', 'good', 'critical');
-                scoreCritical.classList.remove('active', 'excellent', 'good', 'critical');
-                
-                if (checkedCount >= 13) {
-                    scoreExcellent.classList.add('excellent');
-                } else if (checkedCount >= 8) {
-                    scoreGood.classList.add('good');
-                } else {
-                    scoreCritical.classList.add('critical');
-                }
+            :root {
+                --color-bg: #fafaf9;
+                --color-surface: #ffffff;
+                --color-text: #1c1917;
+                --color-text-muted: #57534e;
+                --color-border: #e7e5e4;
+                --color-primary: #5f7c6b;
+                --color-primary-hover: #4a6355;
+                --color-accent: #c9a882;
+                --font-heading: "Space Grotesk", system-ui, sans-serif;
+                --font-body: "Inter", system-ui, -apple-system, sans-serif;
             }
 
-            // Add event listeners to all checkboxes
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', updateScore);
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: var(--font-body);
+                color: var(--color-text);
+                background-color: var(--color-bg);
+                line-height: 1.6;
+                padding: 2rem;
+            }
+
+            .checklist-container {
+                max-width: 210mm;
+                margin: 0 auto;
+                background: var(--color-surface);
+                padding: 3rem;
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            }
+
+            /* Header */
+            .header {
+                text-align: center;
+                margin-bottom: 2.5rem;
+                border-bottom: 2px solid var(--color-primary);
+                padding-bottom: 1.5rem;
+            }
+            .header h1 {
+                font-family: var(--font-heading);
+                font-size: 2.25rem;
+                color: var(--color-primary);
+                margin-bottom: 0.5rem;
+            }
+            .header h2 {
+                font-family: var(--font-heading);
+                font-size: 1.1rem;
+                font-weight: 500;
+                color: var(--color-text-muted);
+                margin-bottom: 1rem;
+            }
+            .header .author {
+                font-size: 0.9rem;
+                color: var(--color-text-muted);
+                font-style: italic;
+            }
+
+            /* Instructions */
+            .instructions {
+                background: #f0f4f1;
+                padding: 1.25rem;
+                border-radius: 8px;
+                margin-bottom: 2rem;
+                border-left: 4px solid var(--color-primary);
+            }
+            .instructions p {
+                font-size: 0.95rem;
+                color: var(--color-text);
+            }
+
+            /* Live Counter (Sticky Badge) */
+            .live-counter {
+                position: sticky;
+                top: 2rem;
+                background: var(--color-primary);
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 50px;
+                font-family: var(--font-heading);
+                font-weight: 600;
+                font-size: 1.1rem;
+                text-align: center;
+                margin-bottom: 2rem;
+                box-shadow: 0 4px 12px rgba(95, 124, 107, 0.3);
+                z-index: 100;
+                transition: all 0.3s ease;
+            }
+            .live-counter .count-number {
+                font-size: 1.5rem;
+                font-weight: 700;
+                margin: 0 0.25rem;
+            }
+            .live-counter.excellent {
+                background: var(--color-primary);
+            }
+            .live-counter.good {
+                background: var(--color-accent);
+                color: var(--color-text);
+            }
+            .live-counter.critical {
+                background: #dc2626;
+            }
+
+            /* Sections */
+            .section {
+                margin-bottom: 2rem;
+                page-break-inside: avoid;
+            }
+            .section-title {
+                font-family: var(--font-heading);
+                font-size: 1.25rem;
+                color: var(--color-primary);
+                margin-bottom: 1rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            .section-title::before {
+                content: "";
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                background: var(--color-accent);
+                border-radius: 50%;
+            }
+
+            /* Checklist Items */
+            .checklist-item {
+                display: flex;
+                gap: 1rem;
+                margin-bottom: 1.25rem;
+                page-break-inside: avoid;
+            }
+            .checkbox-wrapper {
+                flex-shrink: 0;
+                margin-top: 0.25rem;
+            }
+            .checkbox-wrapper input[type="checkbox"] {
+                width: 20px;
+                height: 20px;
+                accent-color: var(--color-primary);
+                cursor: pointer;
+            }
+            .item-content {
+                flex: 1;
+            }
+            .item-title {
+                font-weight: 600;
+                font-size: 1rem;
+                margin-bottom: 0.25rem;
+                display: block;
+            }
+            .item-desc {
+                font-size: 0.9rem;
+                color: var(--color-text-muted);
+            }
+
+            /* Scoring (Dynamic) */
+            .scoring {
+                background: var(--color-bg);
+                padding: 1.5rem;
+                border-radius: 8px;
+                margin: 2rem 0;
+                border: 1px solid var(--color-border);
+            }
+            .scoring h3 {
+                font-family: var(--font-heading);
+                font-size: 1.1rem;
+                margin-bottom: 0.75rem;
+            }
+            .scoring ul {
+                list-style: none;
+                padding-left: 0;
+            }
+            .scoring li {
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+                padding: 0.5rem;
+                border-radius: 6px;
+                transition: all 0.3s ease;
+            }
+            .scoring li strong {
+                color: var(--color-primary);
+            }
+            .scoring li.active {
+                background: rgba(95, 124, 107, 0.1);
+                border-left: 3px solid var(--color-primary);
+            }
+            .scoring li.excellent {
+                background: rgba(95, 124, 107, 0.15);
+                border-left: 4px solid var(--color-primary);
+            }
+            .scoring li.good {
+                background: rgba(201, 168, 130, 0.15);
+                border-left: 4px solid var(--color-accent);
+            }
+            .scoring li.critical {
+                background: rgba(220, 38, 38, 0.1);
+                border-left: 4px solid #dc2626;
+            }
+
+            /* CTA */
+            .cta-box {
+                text-align: center;
+                margin-top: 2.5rem;
+                padding-top: 2rem;
+                border-top: 2px dashed var(--color-border);
+            }
+            .cta-box h3 {
+                font-family: var(--font-heading);
+                font-size: 1.5rem;
+                margin-bottom: 0.75rem;
+            }
+            .cta-box p {
+                font-size: 1rem;
+                color: var(--color-text-muted);
+                margin-bottom: 1.5rem;
+                max-width: 600px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .cta-button {
+                display: inline-block;
+                background: var(--color-primary);
+                color: white;
+                text-decoration: none;
+                padding: 1rem 2rem;
+                border-radius: 50px;
+                font-family: var(--font-heading);
+                font-weight: 600;
+                transition: background 0.25s ease;
+            }
+            .cta-button:hover {
+                background: var(--color-primary-hover);
+            }
+            .footer {
+                text-align: center;
+                margin-top: 2rem;
+                font-size: 0.8rem;
+                color: var(--color-text-muted);
+            }
+
+            /* Print Button (Screen Only) */
+            .print-btn {
+                position: fixed;
+                bottom: 2rem;
+                right: 2rem;
+                background: var(--color-accent);
+                color: var(--color-text);
+                border: none;
+                padding: 1rem 1.5rem;
+                border-radius: 50px;
+                font-family: var(--font-heading);
+                font-weight: 600;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                transition: transform 0.2s ease;
+            }
+            .print-btn:hover {
+                transform: translateY(-2px);
+                background: #b89570;
+            }
+
+            /* =========================================
+           2. PRINT-SPECIFIC STYLES (@media print)
+           ========================================= */
+            @media print {
+                body {
+                    background: white;
+                    padding: 0;
+                    color: black;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+                .checklist-container {
+                    box-shadow: none;
+                    padding: 0;
+                    max-width: 100%;
+                    border-radius: 0;
+                }
+                .print-btn {
+                    display: none !important;
+                }
+                .live-counter {
+                    position: static;
+                    box-shadow: none;
+                    background-color: var(--color-bg) !important;
+                    color: var(--color-text);
+                }
+                .instructions {
+                    background: #f0f4f1 !important;
+                    -webkit-print-color-adjust: exact;
+                }
+                .scoring {
+                    background: #fafaf9 !important;
+                    -webkit-print-color-adjust: exact;
+                }
+                .scoring li {
+                    background: none !important;
+                    border-left: none !important;
+                }
+                .cta-button {
+                    border: 2px solid var(--color-primary);
+                    color: var(--color-primary);
+                    background: white !important;
+                }
+                .section {
+                    page-break-inside: avoid;
+                }
+                .checklist-item {
+                    page-break-inside: avoid;
+                }
+                a {
+                    text-decoration: none;
+                    color: var(--color-primary);
+                }
+                input[type="checkbox"] {
+                    border: 1px solid #000;
+                    appearance: none;
+                    width: 16px;
+                    height: 16px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <button class="print-btn no-print" onclick="window.print()">
+            <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path
+                    d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
+                ></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+            </svg>
+            Print or Save as PDF
+        </button>
+
+        <div class="checklist-container">
+            <div class="header">
+                <h1>The Homepage Credibility Checklist</h1>
+                <h2>
+                    15 Essential, Objective Tests Every Service Business
+                    Homepage Must Pass
+                </h2>
+                <p class="author">By Naoman Saeed, Founder of Trogdyne</p>
+            </div>
+
+            <div class="instructions">
+                <p>
+                    <strong>How to use this checklist:</strong> Don't guess.
+                    Test. Go through each of the 15 items below and perform the
+                    exact "How to check" action. Be brutally honest. Check the
+                    box if you pass. The counter below will update in real-time
+                    to show your score.
+                </p>
+            </div>
+
+            <!-- LIVE COUNTER -->
+            <div class="live-counter" id="live-counter">
+                Your Score:
+                <span class="count-number" id="count-number">0</span> / 15
+            </div>
+
+            <!-- SECTION 1 -->
+            <div class="section">
+                <h3 class="section-title">
+                    Section 1: First Impressions & Visual Trust
+                </h3>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q1"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q1"
+                            >1. The 3-Second Clarity Test</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Open your homepage.
+                            Read only the largest text (the H1 heading). Does it
+                            state exactly what you do and who you serve in under
+                            10 words, without requiring the user to scroll?
+                        </p>
+                        <p class="item-desc">
+                            <strong>Note: </strong>Note: If you don't have this
+                            copy yet, a developer can help structure it, but you
+                            must define your core message.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q2"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q2"
+                            >2. The Mobile Thumb Test</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Open your site on
+                            your actual smartphone. Is your primary "Book Now"
+                            or "Contact" button visible
+                            <em>without scrolling</em>, and can you tap it
+                            easily with your thumb?
+                        </p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q3"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q3"
+                            >3. The Speed Benchmark</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Paste your homepage
+                            URL into Google PageSpeed Insights
+                            (pagespeed.web.dev). Is your "Mobile" performance
+                            score 80 or higher?
+                        </p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q4"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q4"
+                            >4. The Navigation Simplicity Test</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Count the items in
+                            your main desktop navigation menu. Are there 5 or
+                            fewer items (e.g., Home, Services, About, Projects,
+                            Contact)?
+                        </p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q5"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q5"
+                            >5. The Authentic Imagery Check</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Look at the photos on
+                            your homepage. Are they authentic photos of your
+                            actual business, team, or work, rather than generic,
+                            recognizable stock photography?
+                        </p>
+                        <p class="item-desc">
+                            <strong>Note: </strong>Generic stock photos hurt
+                            conversions. A developer can build a stunning
+                            gallery, but you must provide the authentic assets.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2 -->
+            <div class="section">
+                <h3 class="section-title">
+                    Section 2: Content & Communication
+                </h3>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q6"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q6"
+                            >6. The Frictionless Contact Test</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Starting from your
+                            homepage, count the clicks required to find your
+                            email address or a contact form. Is it 2 clicks or
+                            fewer?
+                        </p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q7"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q7"
+                            >7. The Social Proof Requirement</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Scroll through your
+                            homepage. Do you have at least 2 verifiable client
+                            testimonials, case study snippets, or recognizable
+                            client logos displayed prominently?
+                        </p>
+                        <p class="item-desc">
+                            <strong>Note: </strong>A developer can design
+                            beautiful testimonial sections, but you must gather
+                            the actual client feedback.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q8"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q8"
+                            >8. The Human Connection Check</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Is there a photo of
+                            you or your team, along with a brief, personal
+                            "About" statement, visible directly on the homepage?
+                        </p>
+                        <p class="item-desc">
+                            <strong>Note: </strong>Note: People buy from people.
+                            You provide the story and photo; we build the
+                            section that makes it shine.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q9"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q9"
+                            >9. The Typography Discipline Test</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Review your entire
+                            homepage. Are you using no more than 2 distinct font
+                            families (e.g., one for headings, one for body
+                            text)?
+                        </p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q10"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q10"
+                            >10. The Security Baseline</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Look at your
+                            website's URL in the browser bar. Does it start with
+                            <code>https://</code> and display a padlock icon?
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3 -->
+            <div class="section">
+                <h3 class="section-title">
+                    Section 3: Conversion & User Experience
+                </h3>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q11"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q11"
+                            >11. The Single Primary CTA Rule</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Look at the bottom of
+                            your homepage. Is there exactly ONE dominant,
+                            visually distinct call-to-action button telling the
+                            user exactly what to do next?
+                        </p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q12"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q12"
+                            >12. The Form Friction Test</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Open your contact
+                            form. Does it take fewer than 60 seconds to fill
+                            out, requiring no more than Name, Email, and a
+                            Message?
+                        </p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q13"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q13"
+                            >13. The Broken Link Audit</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Click every single
+                            link in your main navigation, footer, and body text.
+                            Do they all load the correct page instantly without
+                            a "404 Not Found" error?
+                        </p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q14"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q14"
+                            >14. The "Template Trap" Check</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Does your site
+                            feature custom brand colors and intentional spacing
+                            that clearly deviate from the default,
+                            out-of-the-box settings of Wix, Squarespace, or
+                            standard themes?
+                        </p>
+                    </div>
+                </div>
+
+                <div class="checklist-item">
+                    <div class="checkbox-wrapper">
+                        <input
+                            type="checkbox"
+                            id="q15"
+                            class="checklist-checkbox"
+                        />
+                    </div>
+                    <div class="item-content">
+                        <label class="item-title" for="q15"
+                            >15. The Legal Compliance Check</label
+                        >
+                        <p class="item-desc">
+                            <strong>How to check:</strong> Scroll to your
+                            website footer. Is there a clearly visible,
+                            clickable link to your Privacy Policy?
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DYNAMIC SCORING -->
+            <div class="scoring">
+                <h3>How Did You Score?</h3>
+                <ul id="scoring-list">
+                    <li id="score-excellent">
+                        <strong>13–15 "Yes" Answers:</strong> Excellent. Your
+                        foundation is solid. Focus on scaling your traffic.
+                    </li>
+                    <li id="score-good">
+                        <strong>8–12 "Yes" Answers:</strong> Good, but you have
+                        hidden friction points that are silently turning away
+                        potential clients.
+                    </li>
+                    <li id="score-critical">
+                        <strong>7 or Fewer "Yes" Answers:</strong> Critical.
+                        Your website is likely damaging your brand credibility
+                        and leaking revenue.
+                    </li>
+                </ul>
+            </div>
+
+            <!-- CTA -->
+            <div class="cta-box">
+                <h3>Too Busy to Audit or Fix This Yourself?</h3>
+                <p>
+                    If you checked "No" to more than a few of these items, you
+                    don't need a Band-Aid fix. You need a strategic, bespoke
+                    digital ecosystem. Skip the DIY guesswork.
+                </p>
+                <a
+                    href="https://trogdyne.com/qualification/"
+                    class="cta-button"
+                    target="_blank"
+                    >Take the 2-Minute Readiness Quiz</a
+                >
+            </div>
+
+            <div class="footer">
+                © 2026 Trogdyne. All rights reserved. | contact@trogdyne.com |
+                trogdyne.com
+            </div>
+        </div>
+
+        <!-- INTERACTIVE JAVASCRIPT -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const checkboxes = document.querySelectorAll(
+                    ".checklist-checkbox",
+                );
+                const countNumber = document.getElementById("count-number");
+                const liveCounter = document.getElementById("live-counter");
+                const scoreExcellent =
+                    document.getElementById("score-excellent");
+                const scoreGood = document.getElementById("score-good");
+                const scoreCritical = document.getElementById("score-critical");
+
+                function updateScore() {
+                    const checkedCount = document.querySelectorAll(
+                        ".checklist-checkbox:checked",
+                    ).length;
+
+                    // Update counter
+                    countNumber.textContent = checkedCount;
+
+                    // Update counter color based on score
+                    liveCounter.classList.remove(
+                        "excellent",
+                        "good",
+                        "critical",
+                    );
+                    if (checkedCount >= 13) {
+                        liveCounter.classList.add("excellent");
+                    } else if (checkedCount >= 8) {
+                        liveCounter.classList.add("good");
+                    } else {
+                        liveCounter.classList.add("critical");
+                    }
+
+                    // Update scoring section highlights
+                    scoreExcellent.classList.remove(
+                        "active",
+                        "excellent",
+                        "good",
+                        "critical",
+                    );
+                    scoreGood.classList.remove(
+                        "active",
+                        "excellent",
+                        "good",
+                        "critical",
+                    );
+                    scoreCritical.classList.remove(
+                        "active",
+                        "excellent",
+                        "good",
+                        "critical",
+                    );
+
+                    if (checkedCount >= 13) {
+                        scoreExcellent.classList.add("excellent");
+                    } else if (checkedCount >= 8) {
+                        scoreGood.classList.add("good");
+                    } else {
+                        scoreCritical.classList.add("critical");
+                    }
+                }
+
+                // Add event listeners to all checkboxes
+                checkboxes.forEach((checkbox) => {
+                    checkbox.addEventListener("change", updateScore);
+                });
+
+                // Initialize score on page load
+                updateScore();
             });
-
-            // Initialize score on page load
-            updateScore();
-        });
-    </script>
-
-</body>
+        </script>
+    </body>
 </html>
