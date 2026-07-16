@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forbidden Location</title>
+    <style>
+      :root {
+      --bg: #111827;
+      --surface: #1f2937;
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+      --warning: #ef4444;
+      --warning-hover: #dc2626;
+      --radius: 0.5rem;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: var(--bg);
+      font-family: system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      line-height: 1.5;
+      padding: 1.5rem;
+    }
+
+    main {
+      max-width: 480px;
+      width: 100%;
+      background: var(--surface);
+      padding: 2.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      text-align: center;
+      border-left: 4px solid var(--warning);
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--warning);
+    }
+
+    p {
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      font-size: 1.05rem;
+    }
+
+    button {
+      display: inline-block;
+      padding: 0.75rem 2rem;
+      background: var(--warning);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: var(--radius);
+      transition: background 150ms ease, transform 150ms ease;
+    }
+
+    button:hover {
+      background: var(--warning-hover); 
+      transform: translateY(-1px); 
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--warning);
+      outline-offset: 3px;
+      border-radius: var(--radius);
+    }
+    </style>
+</head>
+<body>
+    <main>
+    <h1>This Location is Forbidden</h1>
+    <p>You are not supposed to be here.</p>
+    <button type="button" id="exit-btn">Exit</button>
+    </main>
+    <script>
+        document.getElementById('exit-btn').addEventListener('click', () => {
+        
+        window.close();
+    
+    // Fallback: browser blocked the close
+    setTimeout(() => {
+      if (!window.closed) {
+        const btn = document.getElementById('exit-btn');
+        btn.textContent = "Please close this tab manually";
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+        btn.style.cursor = "not-allowed";
+      }
+    }, 500);
+  });
+    </script>
+</body>
+</html>
