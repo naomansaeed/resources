@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Color Palette Picker | Trogdyne</title>
+    <style>
+        /* =========================================================
+           1. DESIGN TOKENS (CSS Custom Properties)
+           Central place to tweak brand colors, fonts, spacing.
+           ========================================================= */
+        :root {
+            --color-bg: #fafaf9;
+            --color-surface: #ffffff;
+            --color-text: #1c1917;
+            --color-text-muted: #57534e;
+            --color-border: #e7e5e4;
+            --color-primary: #5f7c6b;
+            --color-primary-hover: #4a6355;
+            --color-accent: #c9a882;
+            --color-accent-hover: #b89570;
+            --color-danger: #dc2626;
+            --color-success: #16a34a;
+            --color-warning: #d97706;
+
+            --font-heading: 'Space Grotesk', system-ui, sans-serif;
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+            --radius-sm: 0.25rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-full: 9999px;
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+
+            --transition-fast: 150ms ease;
+            --transition-base: 250ms ease;
+        }
+
+        /* =========================================================
+           2. GLOBAL RESET & BASE STYLES
+           Modern, mobile-first. No legacy browser compromises.
+           ========================================================= */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            line-height: 1.6;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+
+        /* =========================================================
+           3. MAIN CONTAINER
+           Constrained width for readability, centered on large screens.
+           ========================================================= */
+        .picker-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: var(--color-surface);
+            padding: 2rem;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* =========================================================
+           4. HERO / HEADER SECTION
+           ========================================================= */
+        .picker-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--color-primary);
+        }
+        .picker-header h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+        .picker-header h2 {
+            font-family: var(--font-heading);
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 500;
+            color: var(--color-text-muted);
+            margin-bottom: 0.75rem;
+        }
+        .picker-header .author {
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+            font-style: italic;
+        }
+
+        /* =========================================================
+           5. INSTRUCTIONS BOX
+           ========================================================= */
+        .instructions {
+            background: #f0f4f1;
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--color-primary);
+            font-size: 0.95rem;
+        }
+        .instructions strong { color: var(--color-primary); }
+
+        /* =========================================================
+           6. SYSTEM COLORS SECTION
+           Displays the 3 universal system colors (Success, Warning, Error)
+           ========================================================= */
+        .system-colors {
+            background: var(--color-bg);
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 2rem;
+            border: 1px solid var(--color-border);
+        }
+        .system-colors h3 {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+        }
+        .system-colors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .system-color-card {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+        }
+        .system-color-swatch {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            cursor: pointer;
+            transition: transform var(--transition-fast);
+            flex-shrink: 0;
+        }
+        .system-color-swatch:hover {
+            transform: scale(1.05);
+        }
+        .system-color-info {
+            flex: 1;
+        }
+        .system-color-name {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--color-text);
+            margin-bottom: 0.15rem;
+        }
+        .system-color-hex {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            cursor: pointer;
+        }
+        .system-color-hex:hover {
+            color: var(--color-primary);
+        }
+
+        /* =========================================================
+           7. FILTER BAR (Web only, hidden in print)
+           Category buttons for filtering the palette list.
+           ========================================================= */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--color-bg);
+            border-radius: var(--radius-md);
+        }
+        .filter-bar-label {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--color-text-muted);
+            font-size: 0.875rem;
+            align-self: center;
+            margin-right: 0.5rem;
+        }
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-full);
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            color: var(--color-text);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            min-height: 44px; /* Touch-friendly */
+        }
+        .filter-btn:hover {
+            border-color: var(--color-primary);
+            background: #f0f4f1;
+        }
+        .filter-btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        /* =========================================================
+           8. PALETTE LIST (The star of the show)
+           Each palette is a card that works in both web and print.
+           ========================================================= */
+        .palette-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .palette-card {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1rem;
+            padding: 1.25rem;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-base);
+            page-break-inside: avoid;
+        }
+        .palette-card:hover {
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-md);
+        }
+        .palette-card.hidden {
+            display: none;
+        }
+        .palette-card.selected {
+            border-color: var(--color-primary);
+            background: #f0f4f1;
+        }
+
+        /* Checkbox column */
+        .palette-checkbox {
+            display: flex;
+            align-items: flex-start;
+            padding-top: 0.25rem;
+        }
+        .palette-checkbox input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--color-primary);
+            cursor: pointer;
+        }
+
+        /* Palette content */
+        .palette-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .palette-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+        .palette-name {
+            font-family: var(--font-heading);
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+        .palette-mood {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            font-style: italic;
+        }
+        .palette-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        .palette-tag {
+            font-size: 0.75rem;
+            padding: 0.15rem 0.6rem;
+            background: var(--color-bg);
+            color: var(--color-text-muted);
+            border-radius: var(--radius-full);
+            border: 1px solid var(--color-border);
+        }
+
+        /* Color swatches row - now 5 columns */
+        .swatches {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+        }
+        .swatch {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .swatch-color {
+            aspect-ratio: 2 / 1;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            cursor: pointer;
+            transition: transform var(--transition-fast);
+            position: relative;
+        }
+        .swatch-color:hover {
+            transform: scale(1.05);
+        }
+        .swatch-color::after {
+            content: 'Click to copy';
+            position: absolute;
+            bottom: -1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: var(--color-text-muted);
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+            white-space: nowrap;
+        }
+        .swatch-color:hover::after {
+            opacity: 1;
+        }
+        .swatch-label {
+            font-size: 0.7rem;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .swatch-hex {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.8rem;
+            color: var(--color-text);
+            cursor: pointer;
+        }
+        .swatch-hex:hover {
+            color: var(--color-primary);
+        }
+
+        /* Contrast ratio badge */
+        .contrast-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.8rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: var(--radius-full);
+            font-family: ui-monospace, monospace;
+            font-weight: 600;
+        }
+        .contrast-badge.pass-aaa {
+            background: rgba(22, 163, 74, 0.1);
+            color: var(--color-success);
+            border: 1px solid rgba(22, 163, 74, 0.3);
+        }
+        .contrast-badge.pass-aa {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--color-warning);
+            border: 1px solid rgba(217, 119, 6, 0.3);
+        }
+        .contrast-badge.fail {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--color-danger);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+
+        /* =========================================================
+           9. PRINT CONTROLS
+           Two buttons: nudge toward 1-3, secondary for "print all".
+           ========================================================= */
+        .print-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: var(--color-bg);
+            border-radius: var(--radius-md);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .print-tip {
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+            font-style: italic;
+        }
+        .print-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+        .btn {
+            padding: 0.85rem 1.75rem;
+            border: none;
+            border-radius: var(--radius-full);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-text-muted);
+            border: 1px solid var(--color-border);
+        }
+        .btn-secondary:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+        .btn-accent {
+            background: var(--color-accent);
+            color: var(--color-text);
+        }
+        .btn-accent:hover {
+            background: var(--color-accent-hover);
+            transform: translateY(-2px);
+        }
+
+        /* =========================================================
+           10. CONFIRMATION MODAL
+           Appears when user clicks "Print All 20 Palettes".
+           ========================================================= */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-backdrop.active {
+            display: flex;
+        }
+        .modal {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: var(--shadow-lg);
+        }
+        .modal h3 {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            color: var(--color-primary);
+        }
+        .modal p {
+            color: var(--color-text-muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        /* =========================================================
+           11. CUSTOM PALETTE BUILDER (Web only, Option B)
+           Curated color selection + live preview + contrast warnings.
+           ========================================================= */
+        .builder-section {
+            margin: 3rem 0;
+            padding: 2rem;
+            background: var(--color-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
+        }
+        .builder-section h2 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+        }
+        .builder-section > p {
+            color: var(--color-text-muted);
+            margin-bottom: 1.5rem;
+        }
+        .builder-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .builder-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+        .builder-field label {
+            display: block;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+        .builder-field select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            background: var(--color-surface);
+            cursor: pointer;
+            min-height: 44px;
+        }
+        .builder-field select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        /* Live preview panel */
+        .builder-preview {
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            border: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .preview-heading {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .preview-body {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .preview-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-full);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            text-align: center;
+            align-self: flex-start;
+        }
+        .preview-contrast {
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-family: ui-monospace, monospace;
+        }
+        .preview-contrast.pass {
+            background: rgba(22, 163, 74, 0.1);
+            color: var(--color-success);
+            border: 1px solid rgba(22, 163, 74, 0.3);
+        }
+        .preview-contrast.fail {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--color-danger);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+
+        .builder-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* =========================================================
+           12. INTERACTIVE ACCESSIBILITY CHECKER (Web only)
+           Two color inputs → live contrast ratio + WCAG rating.
+           ========================================================= */
+        .a11y-section {
+            margin: 3rem 0;
+            padding: 2rem;
+            background: var(--color-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
+        }
+        .a11y-section h2 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+        }
+        .a11y-section > p {
+            color: var(--color-text-muted);
+            margin-bottom: 1.5rem;
+        }
+        .a11y-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
+            margin-bottom: 1.5rem;
+        }
+        .a11y-field label {
+            display: block;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .a11y-field input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-family: ui-monospace, monospace;
+            font-size: 0.95rem;
+            background: var(--color-surface);
+            min-height: 44px;
+        }
+        .a11y-field input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+        .a11y-result {
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            text-align: center;
+            font-family: var(--font-heading);
+            font-weight: 600;
+        }
+        .a11y-result.pass-aaa {
+            background: rgba(22, 163, 74, 0.1);
+            color: var(--color-success);
+            border: 2px solid var(--color-success);
+        }
+        .a11y-result.pass-aa {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--color-warning);
+            border: 2px solid var(--color-warning);
+        }
+        .a11y-result.fail {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--color-danger);
+            border: 2px solid var(--color-danger);
+        }
+        .a11y-ratio {
+            font-size: 1.75rem;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        .a11y-disclaimer {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(217, 119, 6, 0.08);
+            border-left: 3px solid var(--color-warning);
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+        }
+
+        /* =========================================================
+           13. FINAL CTA
+           ========================================================= */
+        .final-cta {
+            text-align: center;
+            padding: 2.5rem 1.5rem;
+            background: var(--color-primary);
+            color: white;
+            border-radius: var(--radius-lg);
+            margin-top: 3rem;
+        }
+        .final-cta h2 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .final-cta p {
+            margin-bottom: 1.5rem;
+            opacity: 0.95;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .final-cta .btn {
+            background: var(--color-accent);
+            color: var(--color-text);
+        }
+        .final-cta .btn:hover {
+            background: var(--color-accent-hover);
+        }
+
+        /* =========================================================
+           14. FOOTER
+           ========================================================= */
+        .picker-footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--color-border);
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+        }
+
+        /* =========================================================
+           15. TOAST NOTIFICATION
+           Appears briefly when a hex code is copied.
+           ========================================================= */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--color-text);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-full);
+            font-size: 0.9rem;
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transition: all var(--transition-base);
+            z-index: 2000;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* =========================================================
+           16. RESPONSIVE ADJUSTMENTS
+           Mobile-first: base styles are mobile, this adds desktop.
+           ========================================================= */
+        @media (min-width: 768px) {
+            body { padding: 2rem; }
+            .picker-container { padding: 3rem; }
+            .swatches { grid-template-columns: repeat(5, 1fr); }
+        }
+
+        @media (max-width: 767px) {
+            .palette-card {
+                grid-template-columns: 1fr;
+            }
+            .palette-checkbox {
+                justify-content: flex-start;
+            }
+            .builder-grid {
+                grid-template-columns: 1fr;
+            }
+            .a11y-inputs {
+                grid-template-columns: 1fr;
+            }
+            .swatches {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* =========================================================
+           17. PRINT STYLES
+           Hides interactive elements, shows clean palette table.
+           Uses print-color-adjust for accurate color reproduction.
+           ========================================================= */
+        @media print {
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+                color: black;
+                font-size: 11pt;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .picker-container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            /* Hide all interactive elements */
+            .filter-bar,
+            .print-controls,
+            .modal-backdrop,
+            .builder-section,
+            .a11y-section,
+            .final-cta,
+            .toast {
+                display: none !important;
+            }
+
+            /* Show only selected palettes (or all if user chose "print all") */
+            .palette-card.hidden {
+                display: none !important;
+            }
+            .palette-card.print-all-mode {
+                display: grid !important;
+            }
+
+            /* Hide checkboxes in print */
+            .palette-checkbox {
+                display: none;
+            }
+            .palette-card {
+                grid-template-columns: 1fr;
+                border: 1px solid #ccc;
+                page-break-inside: avoid;
+                margin-bottom: 0.75rem;
+            }
+
+            /* Ensure colors print accurately */
+            .swatch-color {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            /* Hide hover tooltips */
+            .swatch-color::after {
+                display: none;
+            }
+
+            /* Print URL at bottom */
+            .picker-footer::after {
+                content: " Interactive version: trogdyne.com/color-palette-picker";
+                display: block;
+                margin-top: 0.5rem;
+                font-style: italic;
+            }
+
+            /* Print disclaimer about accessibility checker */
+            .picker-footer::before {
+                content: "Note: The interactive accessibility checker requires JavaScript and is not available in this printed version. For manual contrast verification, visit webaim.org/resources/contrastchecker/.";
+                display: block;
+                margin-bottom: 1rem;
+                padding: 0.5rem;
+                background: #f5f5f5;
+                border-left: 3px solid #999;
+                font-size: 9pt;
+                color: #555;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =========================================================
+         TOAST NOTIFICATION (for copy feedback)
+         ========================================================= -->
+    <div class="toast" id="toast">Copied to clipboard!</div>
+
+    <!-- =========================================================
+         CONFIRMATION MODAL (for "Print All" action)
+         ========================================================= -->
+    <div class="modal-backdrop" id="printAllModal">
+        <div class="modal">
+            <h3>Print All 20 Palettes?</h3>
+            <p>This will generate approximately <strong>4–5 pages</strong> of color palettes. Are you certain you want to print all of them? For a cleaner printout, we recommend selecting just 1–3 palettes above.</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmPrintAll()">Yes, Print All</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         MAIN CONTAINER
+         ========================================================= -->
+    <div class="picker-container">
+
+        <!-- HEADER -->
+        <div class="picker-header">
+            <h1>Brand Color Palette Picker</h1>
+            <h2>20 Pre-Made Color Schemes for Service Businesses</h2>
+            <p class="author">By Naoman Saeed, Founder of Trogdyne</p>
+        </div>
+
+        <!-- INSTRUCTIONS -->
+        <div class="instructions">
+            <p><strong>How to use:</strong> Browse the 20 curated palettes below. Each includes 5 brand colors plus 3 universal system colors. Click any color swatch or hex code to copy it to your clipboard. Select the palettes you love using the checkboxes, then print just those. Alternatively, you can print all 20 for a comprehensive reference.</p>
+        </div>
+
+        <!-- =========================================================
+             SYSTEM COLORS SECTION
+             Displays the 3 universal system colors that work with all palettes.
+             ========================================================= -->
+        <div class="system-colors">
+            <h3>Universal System Colors (Included in All Palettes)</h3>
+            <div class="system-colors-grid">
+                <div class="system-color-card">
+                    <div class="system-color-swatch" style="background-color: #16A34A" data-hex="#16A34A" title="Click to copy #16A34A"></div>
+                    <div class="system-color-info">
+                        <div class="system-color-name">Success</div>
+                        <div class="system-color-hex" data-hex="#16A34A" title="Click to copy #16A34A">#16A34A</div>
+                    </div>
+                </div>
+                <div class="system-color-card">
+                    <div class="system-color-swatch" style="background-color: #D97706" data-hex="#D97706" title="Click to copy #D97706"></div>
+                    <div class="system-color-info">
+                        <div class="system-color-name">Warning</div>
+                        <div class="system-color-hex" data-hex="#D97706" title="Click to copy #D97706">#D97706</div>
+                    </div>
+                </div>
+                <div class="system-color-card">
+                    <div class="system-color-swatch" style="background-color: #DC2626" data-hex="#DC2626" title="Click to copy #DC2626"></div>
+                    <div class="system-color-info">
+                        <div class="system-color-name">Error</div>
+                        <div class="system-color-hex" data-hex="#DC2626" title="Click to copy #DC2626">#DC2626</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             FILTER BAR (Web only)
+             data-category attributes on palette cards drive filtering.
+             ========================================================= -->
+        <div class="filter-bar" id="filterBar">
+            <span class="filter-bar-label">Filter by:</span>
+            <button class="filter-btn active" data-filter="all">All Palettes</button>
+            <button class="filter-btn" data-filter="trust">Trust &amp; Professional</button>
+            <button class="filter-btn" data-filter="calm">Calm &amp; Wellness</button>
+            <button class="filter-btn" data-filter="energetic">Energetic &amp; Creative</button>
+            <button class="filter-btn" data-filter="luxury">Luxury &amp; Premium</button>
+        </div>
+
+        <!-- =========================================================
+             PALETTE LIST
+             Each card has:
+               - data-category (for filtering)
+               - data-colors (JSON string of the 5 hex codes)
+               - A checkbox for print selection
+               - 5 swatches with click-to-copy
+               - Pre-calculated contrast ratio (Primary vs Background Light)
+             ========================================================= -->
+        <div class="palette-list" id="paletteList">
+            <!-- Palettes are injected by JavaScript from the data array below -->
+        </div>
+
+        <!-- =========================================================
+             PRINT CONTROLS
+             Primary button nudges toward 1-3 selections.
+             Secondary button offers "print all" with confirmation.
+             ========================================================= -->
+        <div class="print-controls">
+            <p class="print-tip">💡 Tip: Select 1–3 palettes for a clean 1–2 page printout.</p>
+            <div class="print-buttons">
+                <button class="btn btn-primary" onclick="printSelected()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                    Print Selected Palettes
+                </button>
+                <button class="btn btn-secondary" onclick="openModal()">Print All 20 Palettes</button>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             CUSTOM PALETTE BUILDER (Web only)
+             Curated dropdowns + live preview + contrast warnings.
+             ========================================================= -->
+        <div class="builder-section">
+            <h2>Build Your Own Palette</h2>
+            <p>Mix and match from our curated color library. The preview updates live, and you'll be warned if your combination fails accessibility standards.</p>
+
+            <div class="builder-grid">
+                <!-- Controls column -->
+                <div class="builder-controls">
+                    <div class="builder-field">
+                        <label for="builder-primary">Primary Color (60% usage)</label>
+                        <select id="builder-primary"></select>
+                    </div>
+                    <div class="builder-field">
+                        <label for="builder-secondary">Secondary Color (30% usage)</label>
+                        <select id="builder-secondary"></select>
+                    </div>
+                    <div class="builder-field">
+                        <label for="builder-accent">Accent Color (10% usage)</label>
+                        <select id="builder-accent"></select>
+                    </div>
+                    <div class="builder-field">
+                        <label for="builder-textDark">Text Dark</label>
+                        <select id="builder-textDark"></select>
+                    </div>
+                    <div class="builder-field">
+                        <label for="builder-bgLight">Background Light</label>
+                        <select id="builder-bgLight"></select>
+                    </div>
+                </div>
+
+                <!-- Live preview column -->
+                <div class="builder-preview" id="builderPreview">
+                    <div class="preview-heading" id="previewHeading">Your Brand Heading</div>
+                    <div class="preview-body" id="previewBody">This is how your body text will look against the neutral background. Readability matters — this is where your visitors spend most of their time.</div>
+                    <div class="preview-button" id="previewButton">Book a Call</div>
+                    <div class="preview-contrast" id="previewContrast">Contrast: calculating...</div>
+                </div>
+            </div>
+
+            <div class="builder-actions">
+                <button class="btn btn-primary" onclick="copyBuilderHex()">Copy All Hex Codes</button>
+                <button class="btn btn-secondary" onclick="resetBuilder()">Reset</button>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             INTERACTIVE ACCESSIBILITY CHECKER (Web only)
+             Two color inputs → live contrast ratio + WCAG rating.
+             Disclaimer below explains it's not in print version.
+             ========================================================= -->
+        <div class="a11y-section">
+            <h2>Accessibility Contrast Checker</h2>
+            <p>Enter any two colors (foreground and background) to check if they meet WCAG 2.1 standards for readable text.</p>
+
+            <div class="a11y-inputs">
+                <div class="a11y-field">
+                    <label for="a11y-foreground">Foreground (Text) Color</label>
+                    <input type="text" id="a11y-foreground" value="#1c1917" placeholder="#000000">
+                </div>
+                <div class="a11y-field">
+                    <label for="a11y-background">Background Color</label>
+                    <input type="text" id="a11y-background" value="#ffffff" placeholder="#ffffff">
+                </div>
+                <button class="btn btn-primary" onclick="checkAccessibility()">Check</button>
+            </div>
+
+            <div class="a11y-result pass-aaa" id="a11yResult">
+                <span class="a11y-ratio" id="a11yRatio">—</span>
+                <span id="a11yRating">Enter colors above</span>
+            </div>
+
+            <div class="a11y-disclaimer">
+                <strong>Note:</strong> This interactive checker requires JavaScript and is not available in the printed version. For manual contrast verification, use <a href="https://webaim.org/resources/contrastchecker/" target="_blank" rel="noopener" style="color: var(--color-primary);">WebAIM's Contrast Checker</a>.
+            </div>
+        </div>
+
+        <!-- =========================================================
+             FINAL CTA
+             ========================================================= -->
+        <div class="final-cta">
+            <h2>Need Help Implementing These Colors?</h2>
+            <p>If you've found a palette you love but aren't sure how to apply it across your website, we can help. Take our 2-minute readiness quiz and let's discuss your project.</p>
+            <a href="https://trogdyne.com/services/" class="btn" target="_blank">Take the Readiness Quiz</a>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="picker-footer">
+            © 2026 Trogdyne. All rights reserved. | contact@trogdyne.com | trogdyne.com
+        </div>
+    </div>
+
+    <script>
+        /* =========================================================
+           PALETTE DATA
+           20 palettes organized by category.
+           Each palette has 5 brand colors:
+             - primary, secondary, accent, textDark, bgLight
+           Plus 3 universal system colors (success, warning, error)
+           ========================================================= */
+        const PALETTES = [
+            // ---- Category A: Trust & Professional ----
+            {
+                id: 1, name: "Trustworthy Blue", mood: "Reliable, Established, Professional",
+                category: "trust",
+                colors: {
+                    primary: "#1E40AF",
+                    secondary: "#3B82F6",
+                    accent: "#F59E0B",
+                    textDark: "#1F2937",
+                    bgLight: "#FFFFFF"
+                },
+                industries: ["Financial Advisors", "Legal", "Insurance"]
+            },
+            {
+                id: 2, name: "Corporate Slate", mood: "Serious, Authoritative, Modern",
+                category: "trust",
+                colors: {
+                    primary: "#1E293B",
+                    secondary: "#475569",
+                    accent: "#0EA5E9",
+                    textDark: "#0F172A",
+                    bgLight: "#F8FAFC"
+                },
+                industries: ["B2B Services", "Consulting", "Tech"]
+            },
+            {
+                id: 3, name: "Medical Clean", mood: "Clean, Safe, Clinical",
+                category: "trust",
+                colors: {
+                    primary: "#0D9488",
+                    secondary: "#14B8A6",
+                    accent: "#EF4444",
+                    textDark: "#111827",
+                    bgLight: "#FFFFFF"
+                },
+                industries: ["Healthcare", "Dental", "Wellness Clinics"]
+            },
+            {
+                id: 4, name: "Executive Navy", mood: "Prestigious, Timeless, Leadership",
+                category: "trust",
+                colors: {
+                    primary: "#1E3A8A",
+                    secondary: "#3B82F6",
+                    accent: "#D97706",
+                    textDark: "#1F2937",
+                    bgLight: "#FFFFFF"
+                },
+                industries: ["Executive Coaching", "Law Firms", "Finance"]
+            },
+            {
+                id: 5, name: "Stable Gray", mood: "Balanced, Neutral, Dependable",
+                category: "trust",
+                colors: {
+                    primary: "#374151",
+                    secondary: "#64748B", // REVISED: Added blue undertone
+                    accent: "#10B981",
+                    textDark: "#111827",
+                    bgLight: "#FAFAFA"
+                },
+                industries: ["Accounting", "Real Estate", "Insurance"]
+            },
+
+            // ---- Category B: Calm & Wellness ----
+            {
+                id: 6, name: "Sage Serenity", mood: "Grounded, Natural, Peaceful",
+                category: "calm",
+                colors: {
+                    primary: "#5F7C6B",
+                    secondary: "#84A98C",
+                    accent: "#C9A882",
+                    textDark: "#1F2937",
+                    bgLight: "#FAFAF9"
+                },
+                industries: ["Yoga Studios", "Holistic Health", "Organic Brands"]
+            },
+            {
+                id: 7, name: "Lavender Calm", mood: "Soothing, Feminine, Spiritual",
+                category: "calm",
+                colors: {
+                    primary: "#7C3AED",
+                    secondary: "#A78BFA",
+                    accent: "#F472B6",
+                    textDark: "#1F2937",
+                    bgLight: "#F5F3FF"
+                },
+                industries: ["Therapy", "Meditation", "Wellness Coaching"]
+            },
+            {
+                id: 8, name: "Earth Ground", mood: "Warm, Organic, Nurturing",
+                category: "calm",
+                colors: {
+                    primary: "#92400E",
+                    secondary: "#D97706",
+                    accent: "#059669",
+                    textDark: "#1F2937",
+                    bgLight: "#FFFBEB"
+                },
+                industries: ["Natural Foods", "Eco-Products", "Holistic Healing"]
+            },
+            {
+                id: 9, name: "Ocean Breath", mood: "Refreshing, Clear, Flowing",
+                category: "calm",
+                colors: {
+                    primary: "#0891B2",
+                    secondary: "#22D3EE",
+                    accent: "#6366F1",
+                    textDark: "#111827",
+                    bgLight: "#ECFEFF"
+                },
+                industries: ["Spa", "Massage Therapy", "Breathwork"]
+            },
+            {
+                id: 10, name: "Minimal Zen", mood: "Minimalist, Clean, Focused",
+                category: "calm",
+                colors: {
+                    primary: "#57534E",
+                    secondary: "#A8A29E", // REVISED: Increased lightness significantly
+                    accent: "#DC2626",
+                    textDark: "#1C1917",
+                    bgLight: "#FAFAF9"
+                },
+                industries: ["Minimalist Brands", "Meditation Apps", "Simple Services"]
+            },
+
+            // ---- Category C: Energetic & Creative ----
+            {
+                id: 11, name: "Vibrant Coral", mood: "Energetic, Friendly, Approachable",
+                category: "energetic",
+                colors: {
+                    primary: "#EA580C",
+                    secondary: "#FB923C",
+                    accent: "#3B82F6",
+                    textDark: "#1F2937",
+                    bgLight: "#FFFFFF"
+                },
+                industries: ["Life Coaching", "Fitness", "Food Services"]
+            },
+            {
+                id: 12, name: "Creative Purple", mood: "Innovative, Artistic, Bold",
+                category: "energetic",
+                colors: {
+                    primary: "#6D28D9",
+                    secondary: "#A78BFA",
+                    accent: "#FBBF24",
+                    textDark: "#1F2937",
+                    bgLight: "#F5F3FF"
+                },
+                industries: ["Creative Agencies", "Designers", "Artists"]
+            },
+            {
+                id: 13, name: "Fresh Lime", mood: "Fresh, Healthy, Active",
+                category: "energetic",
+                colors: {
+                    primary: "#4D7C0F",
+                    secondary: "#84CC16",
+                    accent: "#1F2937",
+                    textDark: "#111827",
+                    bgLight: "#F7FEE7"
+                },
+                industries: ["Nutrition", "Fitness", "Organic Products"]
+            },
+            {
+                id: 14, name: "Warm Sunset", mood: "Warm, Inviting, Passionate",
+                category: "energetic",
+                colors: {
+                    primary: "#C2410C",
+                    secondary: "#F59E0B",
+                    accent: "#DB2777",
+                    textDark: "#1F2937",
+                    bgLight: "#FFFBEB"
+                },
+                industries: ["Restaurants", "Event Planning", "Hospitality"]
+            },
+            {
+                id: 15, name: "Electric Blue", mood: "Dynamic, Modern, Tech-Savvy",
+                category: "energetic",
+                colors: {
+                    primary: "#2563EB",
+                    secondary: "#60A5FA",
+                    accent: "#FACC15",
+                    textDark: "#1F2937",
+                    bgLight: "#EFF6FF"
+                },
+                industries: ["Tech Coaches", "Online Courses", "Digital Services"]
+            },
+
+            // ---- Category D: Luxury & Premium ----
+            {
+                id: 16, name: "Midnight Gold", mood: "Luxurious, Exclusive, Premium",
+                category: "luxury",
+                colors: {
+                    primary: "#111827",
+                    secondary: "#374151",
+                    accent: "#FCD34D",
+                    textDark: "#000000",
+                    bgLight: "#FFFFFF"
+                },
+                industries: ["Luxury Brands", "High-End Coaching", "Boutique Services"]
+            },
+            {
+                id: 17, name: "Burgundy Elegance", mood: "Sophisticated, Rich, Timeless",
+                category: "luxury",
+                colors: {
+                    primary: "#7F1D1D",
+                    secondary: "#B44141", // REVISED: 13% lightness gap + 15% saturation drop
+                    accent: "#D4AF37",
+                    textDark: "#1F2937",
+                    bgLight: "#FEF2F2"
+                },
+                industries: ["Wine Brands", "Luxury Real Estate", "High-End Fashion"]
+            },
+            {
+                id: 18, name: "Pearl & Charcoal", mood: "Refined, Minimal, Modern Luxury",
+                category: "luxury",
+                colors: {
+                    primary: "#1F2937",
+                    secondary: "#4B5563",
+                    accent: "#E5E7EB",
+                    textDark: "#111827",
+                    bgLight: "#FAFAFA"
+                },
+                industries: ["Architecture", "Design Studios", "Premium Services"]
+            },
+            {
+                id: 19, name: "Emerald Prestige", mood: "Prestigious, Wealth, Stability",
+                category: "luxury",
+                colors: {
+                    primary: "#064E3B",
+                    secondary: "#059669",
+                    accent: "#D4AF37",
+                    textDark: "#1F2937",
+                    bgLight: "#ECFDF5"
+                },
+                industries: ["Wealth Management", "Luxury Wellness", "Premium Brands"]
+            },
+            {
+                id: 20, name: "Rose Champagne", mood: "Feminine, Elegant, Boutique",
+                category: "luxury",
+                colors: {
+                    primary: "#9D174D",
+                    secondary: "#F472B6",
+                    accent: "#FDE68A",
+                    textDark: "#1F2937",
+                    bgLight: "#FFF1F2"
+                },
+                industries: ["Beauty Salons", "Bridal Services", "Boutique Retail"]
+            }
+        ];
+
+        /* =========================================================
+           CURATED COLOR LIBRARY (for custom builder)
+           10 pre-approved colors per slot to ensure combinations work.
+           ========================================================= */
+        const CURATED_COLORS = {
+            primary: [
+                { hex: "#5F7C6B", name: "Sage Green" },
+                { hex: "#1E40AF", name: "Royal Blue" },
+                { hex: "#0D9488", name: "Teal" },
+                { hex: "#7C3AED", name: "Violet" },
+                { hex: "#DC2626", name: "Red" },
+                { hex: "#EA580C", name: "Orange" },
+                { hex: "#1F2937", name: "Charcoal" },
+                { hex: "#7F1D1D", name: "Burgundy" },
+                { hex: "#064E3B", name: "Dark Emerald" },
+                { hex: "#9D174D", name: "Deep Pink" }
+            ],
+            secondary: [
+                { hex: "#84A98C", name: "Mint Green" },
+                { hex: "#3B82F6", name: "Bright Blue" },
+                { hex: "#14B8A6", name: "Turquoise" },
+                { hex: "#A78BFA", name: "Lavender" },
+                { hex: "#FB923C", name: "Light Orange" },
+                { hex: "#64748B", name: "Slate Blue-Gray" },
+                { hex: "#F472B6", name: "Pink" },
+                { hex: "#059669", name: "Emerald" },
+                { hex: "#B44141", name: "Bright Burgundy" },
+                { hex: "#D97706", name: "Amber" }
+            ],
+            accent: [
+                { hex: "#C9A882", name: "Warm Tan" },
+                { hex: "#F59E0B", name: "Amber" },
+                { hex: "#EF4444", name: "Red" },
+                { hex: "#FBBF24", name: "Gold" },
+                { hex: "#10B981", name: "Emerald" },
+                { hex: "#3B82F6", name: "Blue" },
+                { hex: "#FCD34D", name: "Gold Light" },
+                { hex: "#D4AF37", name: "Metallic Gold" },
+                { hex: "#DB2777", name: "Pink" },
+                { hex: "#FACC15", name: "Yellow" }
+            ],
+            textDark: [
+                { hex: "#1F2937", name: "Charcoal" },
+                { hex: "#111827", name: "Black" },
+                { hex: "#0F172A", name: "Near Black" },
+                { hex: "#1C1917", name: "Warm Black" },
+                { hex: "#000000", name: "Pure Black" },
+                { hex: "#374151", name: "Dark Gray" },
+                { hex: "#4B5563", name: "Gray" },
+                { hex: "#57534E", name: "Warm Gray" },
+                { hex: "#78716C", name: "Stone" },
+                { hex: "#6B7280", name: "Cool Gray" }
+            ],
+            bgLight: [
+                { hex: "#FAFAF9", name: "Warm Off-White" },
+                { hex: "#FFFFFF", name: "Pure White" },
+                { hex: "#F8FAFC", name: "Cool White" },
+                { hex: "#FFFBEB", name: "Cream" },
+                { hex: "#F5F3FF", name: "Lavender White" },
+                { hex: "#FFF7ED", name: "Peach White" },
+                { hex: "#ECFEFF", name: "Aqua White" },
+                { hex: "#FEF2F2", name: "Red White" },
+                { hex: "#FAFAFA", name: "Pearl" },
+                { hex: "#EFF6FF", name: "Blue White" }
+            ]
+        };
+
+        /* =========================================================
+           UTILITY: WCAG Contrast Ratio Calculation
+           Converts hex → relative luminance → contrast ratio.
+           Returns a number like 4.5 (meaning 4.5:1 ratio).
+           ========================================================= */
+        function hexToRgb(hex) {
+            const h = hex.replace('#', '');
+            return {
+                r: parseInt(h.substring(0, 2), 16),
+                g: parseInt(h.substring(2, 4), 16),
+                b: parseInt(h.substring(4, 6), 16)
+            };
+        }
+
+        function relativeLuminance(hex) {
+            const { r, g, b } = hexToRgb(hex);
+            // Linearize sRGB values
+            const [rs, gs, bs] = [r, g, b].map(c => {
+                c = c / 255;
+                return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+            });
+            return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+        }
+
+        function contrastRatio(hex1, hex2) {
+            const l1 = relativeLuminance(hex1);
+            const l2 = relativeLuminance(hex2);
+            const lighter = Math.max(l1, l2);
+            const darker = Math.min(l1, l2);
+            return (lighter + 0.05) / (darker + 0.05);
+        }
+
+        /* Returns WCAG rating string based on ratio */
+        function wcagRating(ratio) {
+            if (ratio >= 7) return { label: "AAA (Excellent)", class: "pass-aaa" };
+            if (ratio >= 4.5) return { label: "AA (Good)", class: "pass-aa" };
+            if (ratio >= 3) return { label: "AA Large Text Only", class: "pass-aa" };
+            return { label: "Fail - Not Accessible", class: "fail" };
+        }
+
+        /* =========================================================
+           UTILITY: Copy to Clipboard
+           Uses modern Clipboard API with fallback.
+           Shows toast notification on success.
+           ========================================================= */
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(showToast).catch(() => fallbackCopy(text));
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try { document.execCommand('copy'); showToast(); } catch (e) {}
+            document.body.removeChild(textarea);
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        /* =========================================================
+           RENDER: Build the palette list from PALETTES data
+           Called once on page load.
+           ========================================================= */
+        function renderPalettes() {
+            const list = document.getElementById('paletteList');
+            list.innerHTML = '';
+
+            PALETTES.forEach(palette => {
+                // Calculate contrast ratio between primary and bgLight
+                const ratio = contrastRatio(palette.colors.primary, palette.colors.bgLight);
+                const rating = wcagRating(ratio);
+
+                const card = document.createElement('div');
+                card.className = 'palette-card';
+                card.dataset.category = palette.category;
+                card.dataset.id = palette.id;
+
+                card.innerHTML = `
+                    <div class="palette-checkbox">
+                        <input type="checkbox" id="palette-${palette.id}" aria-label="Select ${palette.name} for printing">
+                    </div>
+                    <div class="palette-content">
+                        <div class="palette-header">
+                            <span class="palette-name">${palette.name}</span>
+                            <span class="palette-mood">— ${palette.mood}</span>
+                        </div>
+                        <div class="palette-tags">
+                            ${palette.industries.map(ind => `<span class="palette-tag">${ind}</span>`).join('')}
+                        </div>
+                        <div class="swatches">
+                            ${renderSwatches(palette.colors)}
+                        </div>
+                  <!--      <div>
+                            <span class="contrast-badge ${rating.class}">
+                                Primary/Background: ${ratio.toFixed(2)}:1 — ${rating.label}
+                            </span>
+                        </div> -->
+                    </div>
+                `;
+
+                // Checkbox state change → toggle "selected" visual
+                const checkbox = card.querySelector('input[type="checkbox"]');
+                checkbox.addEventListener('change', () => {
+                    card.classList.toggle('selected', checkbox.checked);
+                });
+
+                list.appendChild(card);
+            });
+        }
+
+        /* Renders the 5 color swatches for a palette */
+        function renderSwatches(colors) {
+            const labels = {
+                primary: 'Primary',
+                secondary: 'Secondary',
+                accent: 'Accent',
+                textDark: 'Text Dark',
+                bgLight: 'Background'
+            };
+            return Object.entries(colors).map(([key, hex]) => `
+                <div class="swatch">
+                    <div class="swatch-color" style="background-color: ${hex}" data-hex="${hex}" title="Click to copy ${hex}"></div>
+                    <span class="swatch-label">${labels[key]}</span>
+                    <span class="swatch-hex" data-hex="${hex}" title="Click to copy ${hex}">${hex}</span>
+                </div>
+            `).join('');
+        }
+
+        /* =========================================================
+           EVENT: Click-to-copy on swatches and hex codes
+           Delegated event listener on the palette list and system colors.
+           ========================================================= */
+        document.addEventListener('click', (e) => {
+            const target = e.target;
+            if (target.matches('.swatch-color, .swatch-hex, .system-color-swatch, .system-color-hex')) {
+                const hex = target.dataset.hex;
+                if (hex) copyToClipboard(hex);
+            }
+        });
+
+        /* =========================================================
+           FILTER: Category filter buttons
+           Shows/hides palette cards based on data-category.
+           ========================================================= */
+        document.getElementById('filterBar').addEventListener('click', (e) => {
+            if (!e.target.matches('.filter-btn')) return;
+
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+
+            const filter = e.target.dataset.filter;
+            document.querySelectorAll('.palette-card').forEach(card => {
+                if (filter === 'all' || card.dataset.category === filter) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        });
+
+        /* =========================================================
+           PRINT: Selected palettes
+           Hides unselected cards, triggers print dialog.
+           ========================================================= */
+        function printSelected() {
+            const selected = document.querySelectorAll('.palette-card input[type="checkbox"]:checked');
+            if (selected.length === 0) {
+                alert('Please select at least one palette to print.');
+                return;
+            }
+
+            // Hide all cards first
+            document.querySelectorAll('.palette-card').forEach(card => {
+                card.classList.add('hidden');
+                card.classList.remove('print-all-mode');
+            });
+
+            // Show only selected cards
+            selected.forEach(cb => {
+                cb.closest('.palette-card').classList.remove('hidden');
+            });
+
+            window.print();
+
+            // After print dialog closes, restore visibility
+            setTimeout(() => {
+                document.querySelectorAll('.palette-card').forEach(card => {
+                    card.classList.remove('hidden');
+                });
+            }, 500);
+        }
+
+        /* =========================================================
+           PRINT ALL: Modal confirmation flow
+           ========================================================= */
+        function openModal() {
+            document.getElementById('printAllModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('printAllModal').classList.remove('active');
+        }
+
+        function confirmPrintAll() {
+            closeModal();
+            // Make sure all cards are visible and in "print-all-mode"
+            document.querySelectorAll('.palette-card').forEach(card => {
+                card.classList.remove('hidden');
+                card.classList.add('print-all-mode');
+            });
+            window.print();
+            // Clean up after print
+            setTimeout(() => {
+                document.querySelectorAll('.palette-card').forEach(card => {
+                    card.classList.remove('print-all-mode');
+                });
+            }, 500);
+        }
+
+        /* Close modal when clicking outside */
+        document.getElementById('printAllModal').addEventListener('click', (e) => {
+            if (e.target.id === 'printAllModal') closeModal();
+        });
+
+        /* =========================================================
+           CUSTOM BUILDER: Populate dropdowns and set up live preview
+           ========================================================= */
+        function initBuilder() {
+            // Populate each dropdown with its curated color list
+            ['primary', 'secondary', 'accent', 'textDark', 'bgLight'].forEach(slot => {
+                const select = document.getElementById(`builder-${slot}`);
+                CURATED_COLORS[slot].forEach((color, idx) => {
+                    const option = document.createElement('option');
+                    option.value = color.hex;
+                    option.textContent = `${color.name} (${color.hex})`;
+                    if (idx === 0) option.selected = true;
+                    select.appendChild(option);
+                });
+                // Live update on change
+                select.addEventListener('change', updateBuilderPreview);
+            });
+
+            updateBuilderPreview();
+        }
+
+        /* Updates the live preview panel based on current selections */
+        function updateBuilderPreview() {
+            const primary = document.getElementById('builder-primary').value;
+            const secondary = document.getElementById('builder-secondary').value;
+            const accent = document.getElementById('builder-accent').value;
+            const textDark = document.getElementById('builder-textDark').value;
+            const bgLight = document.getElementById('builder-bgLight').value;
+
+            const preview = document.getElementById('builderPreview');
+            preview.style.backgroundColor = bgLight;
+
+            const heading = document.getElementById('previewHeading');
+            heading.style.color = primary;
+
+            const body = document.getElementById('previewBody');
+            body.style.color = textDark;
+
+            const button = document.getElementById('previewButton');
+            button.style.backgroundColor = accent;
+            // Choose text color based on accent luminance for readability
+            const accentLum = relativeLuminance(accent);
+            button.style.color = accentLum > 0.5 ? '#1c1917' : '#ffffff';
+
+            // Calculate and display contrast ratio (textDark on bgLight)
+            const ratio = contrastRatio(textDark, bgLight);
+            const rating = wcagRating(ratio);
+            const contrastEl = document.getElementById('previewContrast');
+            contrastEl.textContent = `Text on Background: ${ratio.toFixed(2)}:1 — ${rating.label}`;
+            contrastEl.className = `preview-contrast ${rating.class === 'fail' ? 'fail' : 'pass'}`;
+        }
+
+        /* Copy all 5 hex codes from builder to clipboard */
+        function copyBuilderHex() {
+            const primary = document.getElementById('builder-primary').value;
+            const secondary = document.getElementById('builder-secondary').value;
+            const accent = document.getElementById('builder-accent').value;
+            const textDark = document.getElementById('builder-textDark').value;
+            const bgLight = document.getElementById('builder-bgLight').value;
+            const text = `Primary: ${primary}\nSecondary: ${secondary}\nAccent: ${accent}\nText Dark: ${textDark}\nBackground Light: ${bgLight}`;
+            copyToClipboard(text);
+        }
+
+        /* Reset builder to first option in each dropdown */
+        function resetBuilder() {
+            ['primary', 'secondary', 'accent', 'textDark', 'bgLight'].forEach(slot => {
+                document.getElementById(`builder-${slot}`).selectedIndex = 0;
+            });
+            updateBuilderPreview();
+        }
+
+        /* =========================================================
+           ACCESSIBILITY CHECKER: Manual contrast check
+           ========================================================= */
+        function checkAccessibility() {
+            const fg = document.getElementById('a11y-foreground').value.trim();
+            const bg = document.getElementById('a11y-background').value.trim();
+
+            // Basic hex validation
+            const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+            if (!hexRegex.test(fg) || !hexRegex.test(bg)) {
+                alert('Please enter valid hex colors (e.g., #1c1917).');
+                return;
+            }
+
+            // Normalize 3-digit hex to 6-digit
+            const normalize = h => h.length === 4 ? '#' + h[1]+h[1]+h[2]+h[2]+h[3]+h[3] : h;
+            const fgNorm = normalize(fg);
+            const bgNorm = normalize(bg);
+
+            const ratio = contrastRatio(fgNorm, bgNorm);
+            const rating = wcagRating(ratio);
+
+            const result = document.getElementById('a11yResult');
+            result.className = `a11y-result ${rating.class}`;
+            document.getElementById('a11yRatio').textContent = `${ratio.toFixed(2)}:1`;
+            document.getElementById('a11yRating').textContent = rating.label;
+        }
+
+        /* Also check on Enter key in either input */
+        ['a11y-foreground', 'a11y-background'].forEach(id => {
+            document.getElementById(id).addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkAccessibility();
+            });
+        });
+
+        /* =========================================================
+           INITIALIZATION
+           Run on DOM ready.
+           ========================================================= */
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPalettes();
+            initBuilder();
+            checkAccessibility(); // Initial check with default values
+        });
+    </script>
+</body>
+</html>
