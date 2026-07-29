@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Professionalism Score | Trogdyne</title>
+    <style>
+        /* =========================================================
+           1. DESIGN TOKENS (CSS Custom Properties)
+           Matches the Trogdyne brand established in previous lead magnets.
+           ========================================================= */
+        :root {
+            --color-bg: #fafaf9;
+            --color-surface: #ffffff;
+            --color-text: #1c1917;
+            --color-text-muted: #57534e;
+            --color-border: #e7e5e4;
+            --color-primary: #5f7c6b;
+            --color-primary-hover: #4a6355;
+            --color-accent: #c9a882;
+            --color-accent-hover: #b89570;
+            --color-danger: #dc2626;
+            --color-warning: #d97706;
+            --color-success: #16a34a;
+
+            --font-heading: 'Space Grotesk', system-ui, sans-serif;
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+            --radius-sm: 0.25rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-full: 9999px;
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+
+            --transition-fast: 150ms ease;
+            --transition-base: 250ms ease;
+        }
+
+        /* =========================================================
+           2. GLOBAL RESET & BASE STYLES
+           ========================================================= */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            line-height: 1.6;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+
+        /* =========================================================
+           3. MAIN CONTAINER
+           ========================================================= */
+        .scorecard-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--color-surface);
+            padding: 2rem;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* =========================================================
+           4. HEADER
+           ========================================================= */
+        .scorecard-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--color-primary);
+        }
+        .scorecard-header h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+        .scorecard-header h2 {
+            font-family: var(--font-heading);
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 500;
+            color: var(--color-text-muted);
+            margin-bottom: 0.75rem;
+        }
+        .scorecard-header .author {
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+            font-style: italic;
+        }
+
+        /* =========================================================
+           5. INSTRUCTIONS
+           ========================================================= */
+        .instructions {
+            background: #f0f4f1;
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--color-primary);
+            font-size: 0.95rem;
+        }
+        .instructions strong { color: var(--color-primary); }
+
+        /* =========================================================
+           6. LIVE SCORE COUNTER (Sticky)
+           Updates in real-time as users answer questions.
+           ========================================================= */
+        .live-counter {
+            position: sticky;
+            top: 1rem;
+            background: var(--color-primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-full);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            z-index: 100;
+            transition: all var(--transition-base);
+        }
+        .live-counter .score-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0.25rem;
+        }
+        .live-counter.tier-critical { background: var(--color-danger); }
+        .live-counter.tier-good { background: var(--color-warning); color: var(--color-text); }
+        .live-counter.tier-excellent { background: var(--color-success); }
+
+        /* =========================================================
+           7. CATEGORY SECTIONS
+           ========================================================= */
+        .category-section {
+            margin-bottom: 2.5rem;
+            page-break-inside: avoid;
+        }
+        .category-title {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .category-title::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--color-accent);
+            border-radius: 50%;
+        }
+        .category-count {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            font-weight: 400;
+            margin-left: auto;
+            font-family: var(--font-body);
+        }
+
+        /* =========================================================
+           8. QUESTIONS
+           ========================================================= */
+        .question-item {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 0.75rem;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-base);
+            page-break-inside: avoid;
+        }
+        .question-item:hover {
+            border-color: var(--color-primary);
+        }
+        .question-item.answered-yes {
+            background: #f0f4f1;
+            border-color: var(--color-primary);
+        }
+        .question-checkbox {
+            display: flex;
+            align-items: flex-start;
+            padding-top: 0.25rem;
+        }
+        .question-checkbox input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--color-primary);
+            cursor: pointer;
+        }
+        .question-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .question-text {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--color-text);
+            line-height: 1.4;
+        }
+        .question-how-to {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            padding: 0.75rem;
+            background: rgba(201, 168, 130, 0.08);
+            border-left: 3px solid var(--color-accent);
+            border-radius: var(--radius-sm);
+            line-height: 1.5;
+        }
+        .question-how-to strong {
+            color: var(--color-text);
+            font-weight: 600;
+        }
+        .question-note {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            padding: 0.75rem;
+            background: rgba(95, 124, 107, 0.05);
+            border-left: 3px solid var(--color-primary);
+            border-radius: var(--radius-sm);
+            line-height: 1.5;
+            font-style: italic;
+        }
+        .question-note strong {
+            color: var(--color-primary);
+            font-weight: 600;
+            font-style: normal;
+        }
+
+        /* =========================================================
+           9. RESULTS SECTION (Dynamic)
+           Shows the appropriate tier message based on current score.
+           ========================================================= */
+        .results-section {
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--color-border);
+            transition: all var(--transition-base);
+            page-break-inside: avoid;
+        }
+        .results-section.tier-critical {
+            background: rgba(220, 38, 38, 0.05);
+            border-color: var(--color-danger);
+        }
+        .results-section.tier-good {
+            background: rgba(217, 119, 6, 0.05);
+            border-color: var(--color-warning);
+        }
+        .results-section.tier-excellent {
+            background: rgba(22, 163, 74, 0.05);
+            border-color: var(--color-success);
+        }
+        .results-section.tier-none {
+            background: var(--color-bg);
+            border-color: var(--color-border);
+        }
+        .results-tier-label {
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+        .results-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+        .results-message {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            color: var(--color-text);
+        }
+        .results-breakdown {
+            background: var(--color-surface);
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .results-breakdown-title {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        .results-breakdown ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .results-breakdown li {
+            padding: 0.25rem 0;
+            color: var(--color-text-muted);
+        }
+        .results-breakdown li::before {
+            content: '•';
+            color: var(--color-primary);
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        /* =========================================================
+           10. CTA SECTION
+           ========================================================= */
+        .cta-section {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            background: var(--color-primary);
+            color: white;
+            border-radius: var(--radius-lg);
+            margin-top: 2rem;
+        }
+        .cta-section h3 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .cta-section p {
+            margin-bottom: 1.5rem;
+            opacity: 0.95;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+        .cta-button {
+            display: inline-block;
+            background: var(--color-accent);
+            color: var(--color-text);
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: var(--radius-full);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1.05rem;
+            transition: all var(--transition-base);
+        }
+        .cta-button:hover {
+            background: var(--color-accent-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* =========================================================
+           11. PRINT BUTTON (Screen only)
+           ========================================================= */
+        .print-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--color-accent);
+            color: var(--color-text);
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-full);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform var(--transition-fast);
+            z-index: 50;
+        }
+        .print-btn:hover {
+            transform: translateY(-2px);
+            background: var(--color-accent-hover);
+        }
+
+        /* =========================================================
+           12. FOOTER
+           ========================================================= */
+        .scorecard-footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--color-border);
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+        }
+
+        /* =========================================================
+           13. RESPONSIVE
+           ========================================================= */
+        @media (min-width: 768px) {
+            body { padding: 2rem; }
+            .scorecard-container { padding: 3rem; }
+        }
+
+        @media (max-width: 767px) {
+            .question-item {
+                grid-template-columns: 1fr;
+            }
+            .question-checkbox {
+                justify-content: flex-start;
+            }
+        }
+
+        /* =========================================================
+           14. PRINT STYLES
+           ========================================================= */
+        @media print {
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+                color: black;
+                font-size: 11pt;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .scorecard-container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            /* Hide interactive elements */
+            .print-btn,
+            .live-counter,
+            .cta-section {
+                display: none !important;
+            }
+
+            /* Show all questions with empty checkboxes for manual scoring */
+            .question-item {
+                background: white !important;
+                border: 1px solid #ccc;
+                page-break-inside: avoid;
+            }
+            .question-checkbox input[type="checkbox"] {
+                border: 1.5px solid #000;
+                appearance: none;
+                -webkit-appearance: none;
+                width: 18px;
+                height: 18px;
+            }
+
+            /* Reset any "answered" styling */
+            .question-item.answered-yes {
+                background: white !important;
+                border-color: #ccc;
+            }
+
+            /* Print all tier results as a reference */
+            .results-section {
+                background: white !important;
+                border: 1px solid #ccc !important;
+                page-break-inside: avoid;
+            }
+
+            /* Add a print-only note about the interactive version */
+            .scorecard-footer::after {
+                content: " Interactive version: trogdyne.com/professionalism-score";
+                display: block;
+                margin-top: 0.5rem;
+                font-style: italic;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =========================================================
+         PRINT BUTTON (Screen only)
+         ========================================================= -->
+    <button class="print-btn no-print" onclick="window.print()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Print or Save as PDF
+    </button>
+
+    <!-- =========================================================
+         MAIN CONTAINER
+         ========================================================= -->
+    <div class="scorecard-container">
+
+        <!-- HEADER -->
+        <div class="scorecard-header">
+            <h1>Website Professionalism Score</h1>
+            <h2>Template or Custom-Built? Find Out in 5 Minutes.</h2>
+            <p class="author">By Naoman Saeed, Founder of Trogdyne</p>
+        </div>
+
+        <!-- INSTRUCTIONS -->
+        <div class="instructions">
+            <p><strong>How to use this scorecard:</strong> Answer each of the 14 questions below by checking "Yes" or leaving it blank. Your score updates in real-time. At the end, you'll see exactly where your website stands — and what to do about it.</p>
+        </div>
+
+        <!-- LIVE COUNTER -->
+        <div class="live-counter tier-none" id="live-counter">
+            Your Professionalism Score: <span class="score-number" id="score-number">0</span> / 14
+        </div>
+
+        <!-- =========================================================
+             CATEGORY 1: CUSTOM BRANDING
+             ========================================================= -->
+        <div class="category-section">
+            <h3 class="category-title">
+                Custom Branding
+                <span class="category-count">4 questions</span>
+            </h3>
+
+            <div class="question-item" data-question="1">
+                <div class="question-checkbox">
+                    <input type="checkbox" id="q1" class="score-checkbox">
+                </div>
+                <div class="question-content">
+                    <label class="question-text" for="q1">1. Do you have a custom-designed logo (not just your business name typed in a template font)?</label>
+                    <div class="question-how-to"><strong>How to check:</strong> Look at your logo. Was it created by a designer specifically for your brand, or did you type your business name into a Canva/Wix template and save it?</div>
+                    <div class="question-note"><strong>Note:</strong> Don't have a custom logo yet? No problem. We work with a professional graphic designer who can create a custom logo for you, or we can recommend other trusted designers. The key is avoiding template fonts that look generic and ensuring it works across all your marketing materials.</div>
+                </div>
+            </div>
+
+            <div class="question-item" data-question="2">
+                <div class="question-checkbox">
+                    <input type="checkbox" id="q2" class="score-checkbox">
+                </div>
+                <div class="question-content">
+                    <label class="question-text" for="q2">2. Do the colors on your website match the colors used in your other marketing materials (business cards, social media, packaging)?</label>
+                    <div class="question-how-to"><strong>How to check:</strong> Hold your business card (or open your Instagram profile) next to your website. Do the colors feel like they belong to the same brand, or do they look unrelated?</div>
+                </div>
+            </div>
+
+            <div class="question-item" data-question="3">
+                <div class="question-checkbox">
+                    <input type="checkbox" id="q3" class="score-checkbox">
+                </div>
+                <div class="question-content">
+                    <label class="question-text" for="q3">3. Does your website have a custom favicon (the small icon that appears in the browser tab)?</label>
+                    <div class="question-how-to"><strong>How to check:</strong> Open your website in a browser tab. Do you see a custom icon (your logo or a brand symbol), or just a generic globe, letter, or blank square?</div>
+                </div>
+            </div>
+
+            <div class="question-item" data-question="4">
+                <div class="question-checkbox">
+                    <input type="checkbox" id="q4" class="score-checkbox">
+                </div>
+                <div class="question-content">
+                    <label class="question-text" for="q4">4. Does your website display a branded email address (e.g., hello@yourbusiness.com) rather than a generic one (e.g., yourbusiness@gmail.com)?</label>
+                    <div class="question-how-to"><strong>How to check:</strong> Look at your contact page or footer. Does the email address use your own domain name, or is it a free email service like Gmail, Yahoo, or Hotmail?</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             CATEGORY 2: VISUAL QUALITY
+             ========================================================= -->
+        <div class="category-section">
+            <h3 class="category-title">
+                Visual Quality
+                <span class="category-count">3 questions</span>
+            </h3>
+
+            <div class="question-item" data-question="5">
+                <div class="question-checkbox">
+                    <input type="checkbox" id="q5" class="score-checkbox">
+                </div>
+                <div class="question-content">
+                    <label class="question-text" for="q5">5. Is there consistent spacing and margins between sections (not cramped in some areas and sparse in others)?</label>
+                    <div class="question-how-to"><strong>How to check:</strong> Scroll through your homepage. Do the gaps between sections feel uniform, or do some sections feel squeezed together while others have too much empty space?</div>
+                </div>
+            </div>
+
+            <div class="question-item" data-question="6">
+                <div class="question-checkbox">
+                    <input type="checkbox" id="q6" class="score-checkbox">
+                </div>
+                <div class="question-content">
+                    <label class="question-text" for="q6">6. Do all your images have similar dimensions, styling, and quality (not a mix of high-res and blurry photos)?</label>
+                    <div class="question-how-to"><strong>How to check:</strong> Look at all the images on your homepage and key pages. Do they feel like they belong together, or is it a jarring mix of crisp photos, blurry ones, and different aspect ratios?</div>
+                    <div class="question-note"><strong>Note:</strong> If your images feel mismatched, we can help optimize and display them consistently. Don't have quality photos yet? We can recommend trusted photographers or help you select high-quality stock alternatives that still feel authentic.</div>
+                </div>
+            </div>
+
+            <div class="question-item" data-question="7">
+                <div class="question-checkbox">
+                    <input type="checkbox" id="q7" class="score-checkbox">
+                </div>
+                <div class="question-content">
+                    <label class="question-text" for="q7">7. Are your headings clearly larger and bolder than your body text, creating a visual hierarchy?</label>
+                    <div class="question-how-to"><strong>How to check:</strong> Look at any page on your site. Can you instantly tell which text is a heading and which is body copy, or do they blur together at similar sizes?</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             CATEGORY 3: TRUST SIGNALS
+             ========================================================= -->
+        <div class="category-section">
+            <h3 class="category-title">
+                Trust Signals
+                <span class="category-count">4 questions</span>
+            </h3>
+
+            <div class="question-item" data-question="8">
+                <div class="question-checkbox">
+                    <input type="checkbox" id="q8" class="score-checkbox">
+                </div>
+                <div class="question-content">
+                    <label class="question-text" for="q8">8. Do your testimonials include the client's full name and specific details about their experience (not just "Great service!" or "Happy Customer")?</label>
+                    <div class="question-how-to"><strong>How to check:</strong> Read your testimonials. Do they include the client's real first and last name, and do they mention specific results or experiences (e.g., "Jane Smith said our redesign increased her bookings by 40%")?</div>
+                    <div class="question-note"><strong>Note:</strong> Just starting out and don't have testimonials yet? That's completely normal. We can design a testimonial section that's ready to populate as you collect client feedback, or help you showcase other trust signals like client logos or case studies.</div>
+                </div>
+            </div>
+
+            <div class="question-item" data-question="9">
+                <div class="question-checkbox">
+                    <input type="checkbox" id="q9" class="score-checkbox">
+                </div>
+                <div class="question-content">
+                    <label class="question-text" for="q9">9. Is there a professional-quality photo of you or your team on your website (not a casual selfie or group photo)?</label>
+                    <div class="question-how-to"><strong>How to check:</strong> Look for a photo of yourself or your team. Is it a clear, well-lit professional headshot or team photo, or a casual snapshot that wouldn't look out of place on personal social media?</div>
+                    <div class="question-note"><strong>Note:</strong> Don't have professional photos yet? No problem. We can recommend trusted photographers in your area, or help you select high-quality stock images that still feel authentic. Many of our clients add professional photos after launch.</div>
+                </div>
+            </div>
+
+            <div class="question-item" data-question="10">
+                <div class="question-checkbox">
+                    <input type="checkbox" id="q10" class="score-checkbox">
+                </div>
+                <div class="question-content">
+                    <label class="question-text" for="q10">10. Does your website display trust-building elements like client logos, certifications, awards, or professional affiliations?</label>
+                    <div class="question-how-to"><strong>How to check:</strong> Look for a section showing logos of clients you've worked with, badges of certifications you hold, awards you've won, or professional organizations you belong to. If you have none of these, answer "No."</div>
+                    <div class="question-note"><strong>Note:</strong> If you don't have certifications, awards, or client logos yet, that's okay. We can design your site to showcase these elements as you earn them over time. Starting without them doesn't hold you back.</div>
+                </div>
+            </div>
+
+            <div class="question-item" data-question="11">
+                <div class="question-checkbox">
+                    <input type="checkbox" id="q11" class="score-checkbox">
+                </div>
+                <div class="question-content">
+                    <label class="question-text" for="q11">11. Do you have examples of past work, case studies, or a portfolio section showing what you've done?</label>
+                    <div class="question-how-to"><strong>How to check:</strong> Look for a dedicated section on your site that showcases your past projects, client work, or case studies with before/after results. If you don't have this section, answer "No."</div>
+                    <div class="question-note"><strong>Note:</strong> New to business and don't have a portfolio yet? We can help you structure a portfolio section that grows with you. Many clients start with a few sample projects or case studies, then add more as they complete work.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             CATEGORY 4: CONTENT POLISH
+             ========================================================= -->
+        <div class="category-section">
+            <h3 class="category-title">
+                Content Polish
+                <span class="category-count">2 questions</span>
+            </h3>
+
+            <div class="question-item" data-question="12">
+                <div class="question-checkbox">
+                    <input type="checkbox" id="q12" class="score-checkbox">
+                </div>
+                <div class="question-content">
+                    <label class="question-text" for="q12">12. Are there no obvious spelling, grammar, or punctuation errors on your main pages (homepage, about, services)?</label>
+                    <div class="question-how-to"><strong>How to check:</strong> Read through the text on your homepage, about page, and services page. Are there any typos, grammatical mistakes, or awkward phrasing that a professional editor would catch?</div>
+                    <div class="question-note"><strong>Note:</strong> We can recommend professional copywriters or proofreaders if you'd like polished copy. Or if you prefer to write it yourself, we'll make sure it's implemented cleanly on your site.</div>
+                </div>
+            </div>
+
+            <div class="question-item" data-question="13">
+                <div class="question-checkbox">
+                    <input type="checkbox" id="q13" class="score-checkbox">
+                </div>
+                <div class="question-content">
+                    <label class="question-text" for="q13">13. Does your website copy focus on the customer ("you/your") more than yourself ("we/I/me")?</label>
+                    <div class="question-how-to"><strong>How to check:</strong> Read your homepage copy. Count how many times it says "you/your" versus "we/I/me/my." If "you" appears more often, answer "Yes."</div>
+                    <div class="question-note"><strong>Note:</strong> Rewriting copy to focus on the customer ("you") rather than yourself ("we") can significantly improve conversions. We can recommend copywriters who specialize in this, or guide you through revising it yourself.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             CATEGORY 5: DESIGN SOPHISTICATION
+             ========================================================= -->
+        <div class="category-section">
+            <h3 class="category-title">
+                Design Sophistication
+                <span class="category-count">1 question</span>
+            </h3>
+
+            <div class="question-item" data-question="14">
+                <div class="question-checkbox">
+                    <input type="checkbox" id="q14" class="score-checkbox">
+                </div>
+                <div class="question-content">
+                    <label class="question-text" for="q14">14. Does your website use a restrained color palette of 3-4 colors maximum (not a rainbow of different hues)?</label>
+                    <div class="question-how-to"><strong>How to check:</strong> Count the distinct colors used across your entire website (backgrounds, text, buttons, accents). If you see more than 4 clearly different colors, answer "No."</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             DYNAMIC RESULTS SECTION
+             Updates in real-time based on score.
+             ========================================================= -->
+        <div class="results-section tier-none" id="results-section">
+            <div class="results-tier-label" id="results-tier-label">Your Result</div>
+            <h3 class="results-title" id="results-title">Answer the questions above to see your result</h3>
+            <p class="results-message" id="results-message">Each "Yes" answer adds one point to your score. Your result will appear here as you answer.</p>
+            <div class="results-breakdown" id="results-breakdown" style="display: none;">
+                <div class="results-breakdown-title">Your Score Breakdown:</div>
+                <ul id="breakdown-list"></ul>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             CTA SECTION (Sales-focused, all tiers lead to services)
+             ========================================================= -->
+        <div class="cta-section">
+            <h3 id="cta-title">Ready to Fix the Gaps?</h3>
+            <p id="cta-message">Whether your score is critical or excellent, there's always room to grow. Take our 2-minute Readiness Quiz and let's discuss how we can elevate your website to the next level.</p>
+            <a href="https://trogdyne.com/qualification/" class="cta-button" target="_blank">Take the Readiness Quiz</a>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="scorecard-footer">
+            © 2026 Trogdyne. All rights reserved. | contact@trogdyne.com | trogdyne.com
+        </div>
+    </div>
+
+    <!-- =========================================================
+         JAVASCRIPT: Scoring Logic & Dynamic Updates
+         ========================================================= -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('.score-checkbox');
+            const scoreNumber = document.getElementById('score-number');
+            const liveCounter = document.getElementById('live-counter');
+            const resultsSection = document.getElementById('results-section');
+            const resultsTierLabel = document.getElementById('results-tier-label');
+            const resultsTitle = document.getElementById('results-title');
+            const resultsMessage = document.getElementById('results-message');
+            const resultsBreakdown = document.getElementById('results-breakdown');
+            const breakdownList = document.getElementById('breakdown-list');
+            const ctaTitle = document.getElementById('cta-title');
+            const ctaMessage = document.getElementById('cta-message');
+
+            // Category mapping for breakdown
+            const categoryMap = {
+                1: 'Custom Branding',
+                2: 'Custom Branding',
+                3: 'Custom Branding',
+                4: 'Custom Branding',
+                5: 'Visual Quality',
+                6: 'Visual Quality',
+                7: 'Visual Quality',
+                8: 'Trust Signals',
+                9: 'Trust Signals',
+                10: 'Trust Signals',
+                11: 'Trust Signals',
+                12: 'Content Polish',
+                13: 'Content Polish',
+                14: 'Design Sophistication'
+            };
+
+            // Tier definitions
+            const tiers = {
+                none: {
+                    label: 'Your Result',
+                    title: 'Answer the questions above to see your result',
+                    message: 'Each "Yes" answer adds one point to your score. Your result will appear here as you answer.',
+                    counterClass: 'tier-none',
+                    sectionClass: 'tier-none'
+                },
+                critical: {
+                    label: 'Critical Tier (0-7)',
+                    title: 'Your Website is Actively Costing You Clients',
+                    message: 'Your website has fundamental credibility issues that are turning away potential clients before they even contact you. Every day you wait is lost revenue and damaged reputation. The good news? These gaps are fixable — and we can help you close them quickly.',
+                    counterClass: 'tier-critical',
+                    sectionClass: 'tier-critical',
+                    ctaTitle: 'Stop Losing Clients Today',
+                    ctaMessage: 'Don\'t let another prospect bounce from your site. Take our 2-minute Readiness Quiz and let\'s build a website that actually converts visitors into paying clients.'
+                },
+                good: {
+                    label: 'Good Tier (8-11)',
+                    title: 'Good Foundation — But Gaps Are Holding You Back',
+                    message: 'You\'ve got the basics right, but specific gaps are preventing you from converting at the level you deserve. These are the subtle details that separate "decent" websites from ones that consistently attract premium clients. Let\'s close those gaps together.',
+                    counterClass: 'tier-good',
+                    sectionClass: 'tier-good',
+                    ctaTitle: 'Let\'s Close the Gaps',
+                    ctaMessage: 'You\'re closer than you think. Take our 2-minute Readiness Quiz and let\'s discuss the specific improvements that will take your website from good to exceptional.'
+                },
+                excellent: {
+                    label: 'Excellent Tier (12-14)',
+                    title: 'Excellent — Ready to Scale to the Next Level',
+                    message: 'Your site projects strong visual credibility. You\'ve done the hard work of building a professional foundation. Now it\'s time to optimize for conversions, add advanced features, and scale your impact. Let\'s take what you have and make it exceptional.',
+                    counterClass: 'tier-excellent',
+                    sectionClass: 'tier-excellent',
+                    ctaTitle: 'Take It to the Next Level',
+                    ctaMessage: 'You\'ve built something great. Now let\'s make it unstoppable. Take our 2-minute Readiness Quiz and let\'s discuss advanced optimizations to scale your impact.'
+                }
+            };
+
+            function updateScore() {
+                const checkedBoxes = document.querySelectorAll('.score-checkbox:checked');
+                const score = checkedBoxes.length;
+
+                // Update counter number
+                scoreNumber.textContent = score;
+
+                // Determine tier
+                let tier;
+                if (score === 0) {
+                    tier = tiers.none;
+                } else if (score <= 7) {
+                    tier = tiers.critical;
+                } else if (score <= 11) {
+                    tier = tiers.good;
+                } else {
+                    tier = tiers.excellent;
+                }
+
+                // Update live counter styling
+                liveCounter.className = 'live-counter ' + tier.counterClass;
+
+                // Update results section
+                resultsSection.className = 'results-section ' + tier.sectionClass;
+                resultsTierLabel.textContent = tier.label;
+                resultsTitle.textContent = tier.title;
+                resultsMessage.textContent = tier.message;
+
+                // Update CTA
+                ctaTitle.textContent = tier.ctaTitle || 'Ready to Fix the Gaps?';
+                ctaMessage.textContent = tier.ctaMessage || 'Whether your score is critical or excellent, there\'s always room to grow. Take our 2-minute Readiness Quiz and let\'s discuss how we can elevate your website to the next level.';
+
+                // Update breakdown
+                if (score > 0) {
+                    resultsBreakdown.style.display = 'block';
+                    const categoryScores = {};
+                    checkedBoxes.forEach(cb => {
+                        const questionNum = parseInt(cb.closest('.question-item').dataset.question);
+                        const category = categoryMap[questionNum];
+                        categoryScores[category] = (categoryScores[category] || 0) + 1;
+                    });
+
+                    breakdownList.innerHTML = '';
+                    const allCategories = ['Custom Branding', 'Visual Quality', 'Trust Signals', 'Content Polish', 'Design Sophistication'];
+                    const categoryTotals = {
+                        'Custom Branding': 4,
+                        'Visual Quality': 3,
+                        'Trust Signals': 4,
+                        'Content Polish': 2,
+                        'Design Sophistication': 1
+                    };
+
+                    allCategories.forEach(cat => {
+                        const li = document.createElement('li');
+                        const catScore = categoryScores[cat] || 0;
+                        const catTotal = categoryTotals[cat];
+                        li.textContent = `${cat}: ${catScore}/${catTotal}`;
+                        breakdownList.appendChild(li);
+                    });
+                } else {
+                    resultsBreakdown.style.display = 'none';
+                }
+
+                // Update visual state of answered questions
+                document.querySelectorAll('.question-item').forEach(item => {
+                    const checkbox = item.querySelector('.score-checkbox');
+                    if (checkbox.checked) {
+                        item.classList.add('answered-yes');
+                    } else {
+                        item.classList.remove('answered-yes');
+                    }
+                });
+            }
+
+            // Attach event listeners to all checkboxes
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateScore);
+            });
+
+            // Initialize
+            updateScore();
+        });
+    </script>
+
+</body>
+</html>
