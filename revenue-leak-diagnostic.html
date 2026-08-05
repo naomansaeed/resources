@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revenue Leak Diagnostic | Trogdyne</title>
+    <style>
+        /* =========================================================
+           1. DESIGN TOKENS (Trogdyne Brand)
+           ========================================================= */
+        :root {
+            --color-bg: #fafaf9;
+            --color-surface: #ffffff;
+            --color-text: #1c1917;
+            --color-text-muted: #57534e;
+            --color-border: #e7e5e4;
+            --color-primary: #5f7c6b;
+            --color-primary-hover: #4a6355;
+            --color-accent: #c9a882;
+            --color-accent-hover: #b89570;
+            --color-danger: #dc2626;
+            --color-warning: #d97706;
+            --color-success: #16a34a;
+            --color-info: #2563eb;
+
+            --font-heading: 'Space Grotesk', system-ui, sans-serif;
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+            --radius-sm: 0.25rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-full: 9999px;
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+
+            --transition-fast: 150ms ease;
+            --transition-base: 250ms ease;
+        }
+
+        /* =========================================================
+           2. GLOBAL RESET & BASE
+           ========================================================= */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            line-height: 1.6;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+
+        /* =========================================================
+           3. MAIN CONTAINER
+           ========================================================= */
+        .tool-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--color-surface);
+            padding: 2rem;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* =========================================================
+           4. HEADER
+           ========================================================= */
+        .tool-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--color-primary);
+        }
+        .tool-header h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+        .tool-header h2 {
+            font-family: var(--font-heading);
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 500;
+            color: var(--color-text-muted);
+            margin-bottom: 0.75rem;
+        }
+        .tool-header .author {
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+            font-style: italic;
+        }
+
+        /* =========================================================
+           5. INSTRUCTIONS
+           ========================================================= */
+        .instructions {
+            background: #f0f4f1;
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--color-primary);
+            font-size: 0.95rem;
+        }
+        .instructions strong { color: var(--color-primary); }
+
+        /* =========================================================
+           6. LIVE LEAK COUNTER (Sticky)
+           ========================================================= */
+        .live-counter {
+            position: sticky;
+            top: 1rem;
+            background: var(--color-primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-full);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            z-index: 100;
+            transition: all var(--transition-base);
+        }
+        .live-counter .leak-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0.25rem;
+        }
+        .live-counter.tier-minor { background: var(--color-warning); color: var(--color-text); }
+        .live-counter.tier-significant { background: #ea580c; }
+        .live-counter.tier-critical { background: var(--color-danger); }
+        .live-counter.tier-emergency { background: #7f1d1d; }
+        .live-counter.tier-none { background: var(--color-primary); }
+
+        /* =========================================================
+           7. PHASE SECTIONS
+           ========================================================= */
+        .phase-section {
+            margin-bottom: 2.5rem;
+            page-break-inside: avoid;
+        }
+        .phase-title {
+            font-family: var(--font-heading);
+            font-size: 1.35rem;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .phase-title::before {
+            content: '';
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: var(--color-accent);
+            border-radius: 50%;
+        }
+        .phase-subtitle {
+            font-size: 0.95rem;
+            color: var(--color-text-muted);
+            margin-bottom: 1.25rem;
+            padding-left: 1.25rem;
+        }
+
+        /* =========================================================
+           8. BASELINE INPUTS
+           ========================================================= */
+        .input-group {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .input-label {
+            display: block;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--color-text);
+            margin-bottom: 0.5rem;
+        }
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1.1rem;
+            font-family: var(--font-body);
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: white;
+            transition: border-color var(--transition-fast);
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+        .input-tip {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            margin-top: 0.5rem;
+            padding: 0.6rem 0.8rem;
+            background: rgba(201, 168, 130, 0.08);
+            border-left: 3px solid var(--color-accent);
+            border-radius: var(--radius-sm);
+            line-height: 1.5;
+        }
+        .input-tip strong {
+            color: var(--color-text);
+            font-weight: 600;
+        }
+        .input-tip ul {
+            margin: 0.4rem 0 0 1.2rem;
+            padding: 0;
+        }
+        .input-tip li {
+            margin-bottom: 0.2rem;
+        }
+        .estimation-toggle {
+            display: inline-block;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--color-primary);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .estimation-content {
+            display: none;
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: #f0f4f1;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            color: var(--color-text);
+        }
+        .estimation-content.visible { display: block; }
+
+        /* =========================================================
+           9. DIAGNOSTIC QUESTIONS
+           ========================================================= */
+        .leak-item {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 0.75rem;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-base);
+            page-break-inside: avoid;
+        }
+        .leak-item:hover { border-color: var(--color-primary); }
+        .leak-item.answered-yes {
+            background: rgba(220, 38, 38, 0.04);
+            border-color: var(--color-danger);
+        }
+        .leak-checkbox {
+            display: flex;
+            align-items: flex-start;
+            padding-top: 0.25rem;
+        }
+        .leak-checkbox input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--color-danger);
+            cursor: pointer;
+        }
+        .leak-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .leak-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .leak-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--color-text);
+            line-height: 1.4;
+        }
+        .leak-penalty {
+            display: inline-block;
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--color-danger);
+            background: rgba(220, 38, 38, 0.08);
+            padding: 0.2rem 0.6rem;
+            border-radius: var(--radius-full);
+            white-space: nowrap;
+        }
+        .leak-how-to {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            padding: 0.75rem;
+            background: rgba(201, 168, 130, 0.08);
+            border-left: 3px solid var(--color-accent);
+            border-radius: var(--radius-sm);
+            line-height: 1.5;
+        }
+        .leak-how-to strong {
+            color: var(--color-text);
+            font-weight: 600;
+        }
+        .leak-note {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            padding: 0.75rem;
+            background: rgba(95, 124, 107, 0.05);
+            border-left: 3px solid var(--color-primary);
+            border-radius: var(--radius-sm);
+            line-height: 1.5;
+            font-style: italic;
+        }
+        .leak-note strong {
+            color: var(--color-primary);
+            font-weight: 600;
+            font-style: normal;
+        }
+
+        /* =========================================================
+           10. RESULTS SECTION
+           ========================================================= */
+        .results-section {
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--color-border);
+            transition: all var(--transition-base);
+            page-break-inside: avoid;
+        }
+        .results-section.tier-none {
+            background: var(--color-bg);
+            border-color: var(--color-border);
+        }
+        .results-section.tier-minor {
+            background: rgba(217, 119, 6, 0.05);
+            border-color: var(--color-warning);
+        }
+        .results-section.tier-significant {
+            background: rgba(234, 88, 12, 0.05);
+            border-color: #ea580c;
+        }
+        .results-section.tier-critical {
+            background: rgba(220, 38, 38, 0.05);
+            border-color: var(--color-danger);
+        }
+        .results-section.tier-emergency {
+            background: rgba(127, 29, 29, 0.05);
+            border-color: #7f1d1d;
+        }
+        .results-tier-label {
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+        .results-big-number {
+            font-family: var(--font-heading);
+            font-size: clamp(2.5rem, 6vw, 3.5rem);
+            font-weight: 700;
+            color: var(--color-danger);
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+        .results-annual {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            color: var(--color-text-muted);
+            margin-bottom: 1.5rem;
+        }
+        .results-message {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            color: var(--color-text);
+        }
+
+        /* Breakdown Chart */
+        .breakdown-chart {
+            background: var(--color-surface);
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+        }
+        .breakdown-title {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        .breakdown-bar {
+            margin-bottom: 0.75rem;
+        }
+        .breakdown-bar-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            margin-bottom: 0.3rem;
+        }
+        .breakdown-bar-label {
+            font-weight: 600;
+            color: var(--color-text);
+        }
+        .breakdown-bar-value {
+            color: var(--color-danger);
+            font-weight: 700;
+            font-family: var(--font-heading);
+        }
+        .breakdown-bar-track {
+            width: 100%;
+            height: 8px;
+            background: var(--color-border);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+        .breakdown-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-danger) 0%, #ef4444 100%);
+            border-radius: var(--radius-full);
+            transition: width var(--transition-base);
+        }
+
+        /* Calculation Methodology */
+        .methodology {
+            background: #f0f4f1;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            line-height: 1.6;
+        }
+        .methodology strong {
+            color: var(--color-text);
+            display: block;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-heading);
+        }
+        .methodology code {
+            background: white;
+            padding: 0.1rem 0.4rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            color: var(--color-primary);
+        }
+
+        /* =========================================================
+           11. CTA SECTION
+           ========================================================= */
+        .cta-section {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            background: var(--color-primary);
+            color: white;
+            border-radius: var(--radius-lg);
+            margin-top: 2rem;
+        }
+        .cta-section h3 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .cta-section p {
+            margin-bottom: 1.5rem;
+            opacity: 0.95;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+        .cta-button {
+            display: inline-block;
+            background: var(--color-accent);
+            color: var(--color-text);
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: var(--radius-full);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1.05rem;
+            transition: all var(--transition-base);
+        }
+        .cta-button:hover {
+            background: var(--color-accent-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* =========================================================
+           12. PRINT BUTTON
+           ========================================================= */
+        .print-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--color-accent);
+            color: var(--color-text);
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-full);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform var(--transition-fast);
+            z-index: 50;
+        }
+        .print-btn:hover {
+            transform: translateY(-2px);
+            background: var(--color-accent-hover);
+        }
+
+        /* =========================================================
+           13. OFFLINE INSTRUCTIONS (Print Only)
+           ========================================================= */
+        .offline-instructions {
+            display: none;
+            background: #f0f4f1;
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--color-primary);
+            page-break-inside: avoid;
+        }
+        .offline-instructions h3 {
+            font-family: var(--font-heading);
+            color: var(--color-primary);
+            margin-bottom: 0.75rem;
+            font-size: 1.15rem;
+        }
+        .offline-instructions ol {
+            margin-left: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        .offline-instructions li {
+            margin-bottom: 0.5rem;
+        }
+        .offline-instructions .formula-box {
+            background: white;
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.85rem;
+            margin-top: 0.75rem;
+            border: 1px solid var(--color-border);
+        }
+
+        /* =========================================================
+           14. FOOTER
+           ========================================================= */
+        .tool-footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--color-border);
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+        }
+
+        /* =========================================================
+           15. RESPONSIVE
+           ========================================================= */
+        @media (min-width: 768px) {
+            body { padding: 2rem; }
+            .tool-container { padding: 3rem; }
+        }
+
+        @media (max-width: 767px) {
+            .leak-item { grid-template-columns: 1fr; }
+            .leak-checkbox { justify-content: flex-start; }
+        }
+
+        /* =========================================================
+           16. PRINT STYLES
+           ========================================================= */
+        @media print {
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+                color: black;
+                font-size: 11pt;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .tool-container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .print-btn,
+            .live-counter,
+            .cta-section,
+            .estimation-toggle {
+                display: none !important;
+            }
+
+            /* Show offline instructions in print */
+            .offline-instructions {
+                display: block !important;
+            }
+
+            /* Show estimation content in print */
+            .estimation-content {
+                display: block !important;
+            }
+
+            .leak-item {
+                background: white !important;
+                border: 1px solid #ccc;
+                page-break-inside: avoid;
+            }
+            .leak-checkbox input[type="checkbox"] {
+                border: 1.5px solid #000;
+                appearance: none;
+                -webkit-appearance: none;
+                width: 18px;
+                height: 18px;
+            }
+            .leak-item.answered-yes {
+                background: white !important;
+                border-color: #ccc;
+            }
+
+            .results-section {
+                background: white !important;
+                border: 1px solid #ccc !important;
+                page-break-inside: avoid;
+            }
+
+            .tool-footer::after {
+                content: " Interactive version: trogdyne.com/revenue-leak-diagnostic";
+                display: block;
+                margin-top: 0.5rem;
+                font-style: italic;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PRINT BUTTON -->
+    <button class="print-btn no-print" onclick="window.print()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Print or Save as PDF
+    </button>
+
+    <!-- MAIN CONTAINER -->
+    <div class="tool-container">
+
+        <!-- HEADER -->
+        <div class="tool-header">
+            <h1>Revenue Leak Diagnostic</h1>
+            <h2>Find Out Exactly How Much Money Your Website is Losing Every Month</h2>
+            <p class="author">By Naoman Saeed, Founder of Trogdyne</p>
+        </div>
+
+        <!-- INSTRUCTIONS -->
+        <div class="instructions">
+            <p><strong>How to use this tool:</strong> Enter your business metrics below, then answer 8 diagnostic questions about your website. Each "Yes, I have this problem" answer applies an industry-standard conversion penalty to your numbers. At the end, you'll see the exact dollar amount your website is leaking — and where the biggest leaks are.</p>
+        </div>
+
+        <!-- OFFLINE INSTRUCTIONS (Print Only) -->
+        <div class="offline-instructions">
+            <h3>Using This Tool Offline (Print Version)</h3>
+            <p>This printed version includes a manual calculation worksheet so you can complete the diagnostic without the interactive tool.</p>
+            <ol>
+                <li><strong>Step 1:</strong> Fill in your baseline numbers in the inputs below (or use the estimation guidance if you don't have real data).</li>
+                <li><strong>Step 2:</strong> Go through each of the 8 diagnostic questions and check the box if you have that problem.</li>
+                <li><strong>Step 3:</strong> Use the calculation formula below to compute your monthly revenue leak.</li>
+                <li><strong>Step 4:</strong> Identify your biggest leak categories and prioritize fixes.</li>
+            </ol>
+            <div class="formula-box">
+                <strong>Manual Calculation Formula:</strong><br>
+                Baseline Monthly Revenue = Monthly Visitors × Conversion Rate × Avg. Project Value<br>
+                Total Penalty % = Sum of penalties for each "Yes" answer<br>
+                Lost Revenue = Baseline Monthly Revenue × (Total Penalty % / 100)<br><br>
+                <strong>Example:</strong> 300 visitors × 3% conversion × $1,000 project = $9,000 baseline<br>
+                If you answer "Yes" to Speed (20%) + Clarity (25%) + Mobile (15%) = 60% total penalty<br>
+                Lost Revenue = $9,000 × 0.60 = <strong>$5,400/month leak</strong>
+            </div>
+        </div>
+
+        <!-- LIVE COUNTER -->
+        <div class="live-counter tier-none" id="live-counter">
+            Your Estimated Monthly Revenue Leak: <span class="leak-amount" id="leak-amount">$0</span>
+        </div>
+
+        <!-- =========================================================
+             PHASE 1: BASELINE INPUTS
+             ========================================================= -->
+        <div class="phase-section">
+            <h3 class="phase-title">Phase 1: Your Business Baseline</h3>
+            <p class="phase-subtitle">Enter your real numbers if you have them. If not, use the estimation guidance below each field.</p>
+
+            <!-- Monthly Visitors -->
+            <div class="input-group">
+                <label class="input-label" for="visitors">Monthly Website Visitors</label>
+                <input type="number" id="visitors" class="input-field" placeholder="e.g., 300" min="0" value="">
+                <div class="input-tip">
+                    <strong>💡 Where to find this:</strong>
+                    <ul>
+                        <li>Google Analytics → Reports → Acquisition (monthly visitors)</li>
+                        <li>Cloudflare Dashboard → Analytics tab</li>
+                        <li>Your hosting provider's dashboard (most show monthly visits)</li>
+                    </ul>
+                </div>
+                <span class="estimation-toggle" onclick="toggleEstimation('visitors-est')">Don't have analytics? Click here for estimation guidance →</span>
+                <div class="estimation-content" id="visitors-est">
+                    <strong>Quick Estimation Methods:</strong>
+                    <ul>
+                        <li><strong>Contact form method:</strong> Count form submissions last month and multiply by 30 (typical conversion rate is ~3%)</li>
+                        <li><strong>Social media method:</strong> If you share your site weekly on social and get ~10 clicks per post, that's ~40/month from social alone</li>
+                        <li><strong>Conservative default:</strong> If you're unsure, enter <strong>200</strong> as a reasonable starting point for a small service business</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Average Project Value -->
+            <div class="input-group">
+                <label class="input-label" for="project-value">Average Project / Client Value ($)</label>
+                <input type="number" id="project-value" class="input-field" placeholder="e.g., 1000" min="0" value="">
+                <div class="input-tip">
+                    <strong>💡 Tip:</strong> What's your typical fee for a new client or project? If you have different tiers, use the average or most common value.
+                </div>
+                <span class="estimation-toggle" onclick="toggleEstimation('value-est')">Not sure what to enter? →</span>
+                <div class="estimation-content" id="value-est">
+                    <strong>Typical Ranges by Industry:</strong>
+                    <ul>
+                        <li><strong>Coaching / Consulting:</strong> $500 – $3,000 per client</li>
+                        <li><strong>Local Services (cleaning, landscaping):</strong> $150 – $800 per job</li>
+                        <li><strong>Professional Services (legal, accounting):</strong> $1,000 – $5,000 per engagement</li>
+                        <li><strong>Creative Services (photography, design):</strong> $800 – $4,000 per project</li>
+                    </ul>
+                    <p style="margin-top: 0.5rem;">If you're still unsure, enter <strong>$1,000</strong> as a reasonable mid-range default.</p>
+                </div>
+            </div>
+
+            <!-- Conversion Rate -->
+            <div class="input-group">
+                <label class="input-label" for="conversion-rate">Current Conversion Rate (%)</label>
+                <input type="number" id="conversion-rate" class="input-field" placeholder="e.g., 3" min="0" max="100" step="0.1" value="">
+                <div class="input-tip">
+                    <strong>💡 Tip:</strong> Conversion rate = (Leads or Bookings ÷ Visitors) × 100. Industry average for service business websites is <strong>2–3%</strong>. If you don't track this, we'll use 3% as the baseline.
+                </div>
+                <span class="estimation-toggle" onclick="toggleEstimation('conv-est')">How to estimate your conversion rate →</span>
+                <div class="estimation-content" id="conv-est">
+                    <strong>Estimation Methods:</strong>
+                    <ul>
+                        <li><strong>Form submissions method:</strong> (Monthly form submissions ÷ Monthly visitors) × 100</li>
+                        <li><strong>Booking method:</strong> (Monthly new clients ÷ Monthly visitors) × 100</li>
+                        <li><strong>Industry benchmarks:</strong>
+                            <ul>
+                                <li>Service business average: 2–3%</li>
+                                <li>Well-optimized site: 4–6%</li>
+                                <li>Top performers: 7%+</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <p style="margin-top: 0.5rem;"><strong>If you're unsure, leave this blank — we'll use 3% (industry average) as your baseline.</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             PHASE 2: DIAGNOSTIC QUESTIONS
+             ========================================================= -->
+        <div class="phase-section">
+            <h3 class="phase-title">Phase 2: Identify Your Leaks</h3>
+            <p class="phase-subtitle">Check the box for each problem you have. Each "Yes" applies a specific conversion penalty based on industry research.</p>
+
+            <!-- Leak 1: Speed Drain -->
+            <div class="leak-item" data-leak="1">
+                <div class="leak-checkbox">
+                    <input type="checkbox" id="leak1" class="leak-checkbox-input">
+                </div>
+                <div class="leak-content">
+                    <div class="leak-header">
+                        <label class="leak-title" for="leak1">1. Speed Drain: Your homepage takes longer than 3 seconds to load on mobile</label>
+                        <span class="leak-penalty">~20% penalty</span>
+                    </div>
+                    <div class="leak-how-to"><strong>How to check:</strong> Paste your URL into Google PageSpeed Insights (pagespeed.web.dev). Is your Mobile performance score below 80?</div>
+                    <div class="leak-note"><strong>Note:</strong> Google research shows 53% of mobile users leave a site that takes longer than 3 seconds to load. Speed issues are often caused by unoptimized images or heavy themes — we can audit and compress your assets to fix this quickly.</div>
+                </div>
+            </div>
+
+            <!-- Leak 2: Clarity Drop -->
+            <div class="leak-item" data-leak="2">
+                <div class="leak-checkbox">
+                    <input type="checkbox" id="leak2" class="leak-checkbox-input">
+                </div>
+                <div class="leak-content">
+                    <div class="leak-header">
+                        <label class="leak-title" for="leak2">2. Clarity Drop: Visitors can't understand what you do in under 3 seconds</label>
+                        <span class="leak-penalty">~25% penalty</span>
+                    </div>
+                    <div class="leak-how-to"><strong>How to check:</strong> Open your homepage on a phone. Read only the largest text (the H1 heading). Does it state exactly what you do and who you serve in under 10 words, without scrolling?</div>
+                    <div class="leak-note"><strong>Note:</strong> Nielsen Norman Group research shows unclear value propositions are the #1 reason visitors bounce. If your headline is vague, we can help you craft a clear, compelling message that instantly hooks your ideal client.</div>
+                </div>
+            </div>
+
+            <!-- Leak 3: Mobile Friction -->
+            <div class="leak-item" data-leak="3">
+                <div class="leak-checkbox">
+                    <input type="checkbox" id="leak3" class="leak-checkbox-input">
+                </div>
+                <div class="leak-content">
+                    <div class="leak-header">
+                        <label class="leak-title" for="leak3">3. Mobile Friction: Your primary CTA button is hard to tap on a phone</label>
+                        <span class="leak-penalty">~15% penalty</span>
+                    </div>
+                    <div class="leak-how-to"><strong>How to check:</strong> Open your site on your actual phone. Is your primary "Book Now" or "Contact" button visible without scrolling, and can you tap it easily with your thumb?</div>
+                    <div class="leak-note"><strong>Note:</strong> Baymard Institute research shows mobile interface friction accounts for ~15% of lost conversions. This is a common template oversight — we can redesign your mobile navigation and CTA placement for effortless tapping.</div>
+                </div>
+            </div>
+
+            <!-- Leak 4: Trust Deficit -->
+            <div class="leak-item" data-leak="4">
+                <div class="leak-checkbox">
+                    <input type="checkbox" id="leak4" class="leak-checkbox-input">
+                </div>
+                <div class="leak-content">
+                    <div class="leak-header">
+                        <label class="leak-title" for="leak4">4. Trust Deficit: No verifiable social proof above the fold</label>
+                        <span class="leak-penalty">~10% penalty</span>
+                    </div>
+                    <div class="leak-how-to"><strong>How to check:</strong> Look at the top half of your homepage (before scrolling). Do you have at least 2 verifiable client testimonials, case study snippets, or recognizable client logos displayed prominently?</div>
+                    <div class="leak-note"><strong>Note:</strong> Edelman Trust Barometer research shows lack of social proof causes ~10% of hesitant buyers to abandon. Just starting out? We can design a section that gracefully gathers and displays your first few testimonials as you earn them.</div>
+                </div>
+            </div>
+
+            <!-- Leak 5: Form Friction -->
+            <div class="leak-item" data-leak="5">
+                <div class="leak-checkbox">
+                    <input type="checkbox" id="leak5" class="leak-checkbox-input">
+                </div>
+                <div class="leak-content">
+                    <div class="leak-header">
+                        <label class="leak-title" for="leak5">5. Form Friction: Your contact form takes more than 60 seconds to fill out</label>
+                        <span class="leak-penalty">~15% penalty</span>
+                    </div>
+                    <div class="leak-how-to"><strong>How to check:</strong> Try filling out your own contact form. Does it require more than Name, Email, and a brief Message? Does it take more than 60 seconds?</div>
+                    <div class="leak-note"><strong>Note:</strong> Baymard Institute research shows ~35% of form abandonments are due to overly long forms. Every extra field drops conversions. We can build streamlined, multi-step forms that integrate directly with your CRM to capture leads with zero friction.</div>
+                </div>
+            </div>
+
+            <!-- Leak 6: Competing CTAs -->
+            <div class="leak-item" data-leak="6">
+                <div class="leak-checkbox">
+                    <input type="checkbox" id="leak6" class="leak-checkbox-input">
+                </div>
+                <div class="leak-content">
+                    <div class="leak-header">
+                        <label class="leak-title" for="leak6">6. Competing CTAs: Multiple calls-to-action fighting for attention</label>
+                        <span class="leak-penalty">~10% penalty</span>
+                    </div>
+                    <div class="leak-how-to"><strong>How to check:</strong> Look at your homepage. Is there exactly ONE dominant, visually distinct call-to-action button telling the user what to do next? Or are there multiple buttons of similar prominence?</div>
+                    <div class="leak-note"><strong>Note:</strong> Hick's Law research shows decision paralysis from too many options causes ~10% of visitors to leave without acting. We can restructure your layout to guide visitors toward a single, clear action.</div>
+                </div>
+            </div>
+
+            <!-- Leak 7: Credibility Crack -->
+            <div class="leak-item" data-leak="7">
+                <div class="leak-checkbox">
+                    <input type="checkbox" id="leak7" class="leak-checkbox-input">
+                </div>
+                <div class="leak-content">
+                    <div class="leak-header">
+                        <label class="leak-title" for="leak7">7. Credibility Crack: Broken links, outdated copyright, or placeholder text</label>
+                        <span class="leak-penalty">~5% penalty</span>
+                    </div>
+                    <div class="leak-how-to"><strong>How to check:</strong> Click every link in your header and footer. Check the very bottom of the page for the current year. Scan for any "Lorem Ipsum" or placeholder text.</div>
+                    <div class="leak-note"><strong>Note:</strong> Stanford Web Credibility Research shows small neglect signals cause ~5% of visitors to doubt your professionalism. These details are easy to fix — a quick maintenance sweep can restore immediate credibility.</div>
+                </div>
+            </div>
+
+            <!-- Leak 8: Security Hesitation -->
+            <div class="leak-item" data-leak="8">
+                <div class="leak-checkbox">
+                    <input type="checkbox" id="leak8" class="leak-checkbox-input">
+                </div>
+                <div class="leak-content">
+                    <div class="leak-header">
+                        <label class="leak-title" for="leak8">8. Security Hesitation: Missing HTTPS or Privacy Policy</label>
+                        <span class="leak-penalty">~5% penalty</span>
+                    </div>
+                    <div class="leak-how-to"><strong>How to check:</strong> Look at your browser URL bar for the padlock icon (HTTPS). Scroll to your footer — is there a clearly visible, clickable link to your Privacy Policy?</div>
+                    <div class="leak-note"><strong>Note:</strong> GlobalSign survey research shows ~5% of cautious visitors leave sites without visible security indicators. We can ensure your site is fully compliant and secure, building instant trust with cautious visitors.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             RESULTS SECTION
+             ========================================================= -->
+        <div class="results-section tier-none" id="results-section">
+            <div class="results-tier-label" id="results-tier-label">Your Revenue Leak</div>
+            <div class="results-big-number" id="results-big-number">$0 / month</div>
+            <div class="results-annual" id="results-annual">That's $0 per year walking out your digital door.</div>
+            <p class="results-message" id="results-message">Enter your baseline numbers and answer the diagnostic questions above to calculate your monthly revenue leak.</p>
+
+            <!-- Breakdown Chart -->
+            <div class="breakdown-chart" id="breakdown-chart" style="display: none;">
+                <div class="breakdown-title">Where Your Money is Leaking:</div>
+                <div id="breakdown-bars"></div>
+            </div>
+
+            <!-- Methodology -->
+            <div class="methodology">
+                <strong>How We Calculate This:</strong>
+                <div id="methodology-text">
+                    Baseline Monthly Revenue = Monthly Visitors × Conversion Rate × Avg. Project Value<br>
+                    Each "Yes" answer applies an industry-standard conversion penalty (based on Google, Nielsen Norman Group, Baymard Institute, Edelman Trust Barometer, and Stanford Web Credibility research).<br>
+                    Lost Revenue = Baseline Monthly Revenue × (Total Penalty % / 100)
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             CTA SECTION
+             ========================================================= -->
+        <div class="cta-section">
+            <h3 id="cta-title">Ready to Plug These Leaks?</h3>
+            <p id="cta-message">You now know exactly what's costing you money. Fixing these issues requires strategic design and clean code, not just a template tweak. Take our 2-minute Readiness Quiz and let's discuss how we can turn your website from a revenue leak into your hardest-working employee.</p>
+            <a href="https://trogdyne.com/qualification/" class="cta-button" target="_blank">Take the Readiness Quiz →</a>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="tool-footer">
+            © 2026 Trogdyne. All rights reserved. | contact@trogdyne.com | trogdyne.com
+        </div>
+    </div>
+
+    <!-- =========================================================
+         JAVASCRIPT: Calculation Logic & Dynamic Updates
+         ========================================================= -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const visitorsInput = document.getElementById('visitors');
+            const projectValueInput = document.getElementById('project-value');
+            const conversionRateInput = document.getElementById('conversion-rate');
+            const leakCheckboxes = document.querySelectorAll('.leak-checkbox-input');
+            const liveCounter = document.getElementById('live-counter');
+            const leakAmount = document.getElementById('leak-amount');
+            const resultsSection = document.getElementById('results-section');
+            const resultsTierLabel = document.getElementById('results-tier-label');
+            const resultsBigNumber = document.getElementById('results-big-number');
+            const resultsAnnual = document.getElementById('results-annual');
+            const resultsMessage = document.getElementById('results-message');
+            const breakdownChart = document.getElementById('breakdown-chart');
+            const breakdownBars = document.getElementById('breakdown-bars');
+            const ctaTitle = document.getElementById('cta-title');
+            const ctaMessage = document.getElementById('cta-message');
+
+            // Penalty percentages for each leak (industry-standard benchmarks)
+            const leakPenalties = {
+                1: { name: 'Speed Drain', penalty: 20 },
+                2: { name: 'Clarity Drop', penalty: 25 },
+                3: { name: 'Mobile Friction', penalty: 15 },
+                4: { name: 'Trust Deficit', penalty: 10 },
+                5: { name: 'Form Friction', penalty: 15 },
+                6: { name: 'Competing CTAs', penalty: 10 },
+                7: { name: 'Credibility Crack', penalty: 5 },
+                8: { name: 'Security Hesitation', penalty: 5 }
+            };
+
+            // Default conversion rate if user doesn't enter one
+            const DEFAULT_CONVERSION_RATE = 3;
+
+            // Toggle estimation content visibility
+            window.toggleEstimation = function(id) {
+                const element = document.getElementById(id);
+                element.classList.toggle('visible');
+            };
+
+            // Format currency
+            function formatCurrency(amount) {
+                return '$' + Math.round(amount).toLocaleString('en-US');
+            }
+
+            // Main calculation function
+            function calculateLeak() {
+                // Get baseline inputs
+                const visitors = parseFloat(visitorsInput.value) || 0;
+                const projectValue = parseFloat(projectValueInput.value) || 0;
+                const conversionRate = parseFloat(conversionRateInput.value) || DEFAULT_CONVERSION_RATE;
+
+                // Calculate baseline monthly revenue
+                const baselineConversions = visitors * (conversionRate / 100);
+                const baselineRevenue = baselineConversions * projectValue;
+
+                // Calculate total penalty from checked leaks
+                let totalPenalty = 0;
+                const leakBreakdown = [];
+
+                leakCheckboxes.forEach((checkbox, index) => {
+                    const leakNum = index + 1;
+                    const leakData = leakPenalties[leakNum];
+
+                    if (checkbox.checked) {
+                        totalPenalty += leakData.penalty;
+                        const leakLoss = baselineRevenue * (leakData.penalty / 100);
+                        leakBreakdown.push({
+                            name: leakData.name,
+                            penalty: leakData.penalty,
+                            loss: leakLoss
+                        });
+                    }
+                });
+
+                // Calculate total leak
+                const totalLeak = baselineRevenue * (totalPenalty / 100);
+
+                // Update live counter
+                leakAmount.textContent = formatCurrency(totalLeak);
+
+                // Determine tier
+                let tier;
+                if (visitors === 0 && projectValue === 0) {
+                    tier = 'none';
+                } else if (totalLeak < 500) {
+                    tier = 'minor';
+                } else if (totalLeak < 2000) {
+                    tier = 'significant';
+                } else if (totalLeak < 5000) {
+                    tier = 'critical';
+                } else {
+                    tier = 'emergency';
+                }
+
+                // Update counter styling
+                liveCounter.className = 'live-counter tier-' + tier;
+
+                // Update results section
+                updateResults(tier, totalLeak, baselineRevenue, totalPenalty, leakBreakdown);
+
+                // Update visual state of answered questions
+                document.querySelectorAll('.leak-item').forEach(item => {
+                    const checkbox = item.querySelector('.leak-checkbox-input');
+                    if (checkbox.checked) {
+                        item.classList.add('answered-yes');
+                    } else {
+                        item.classList.remove('answered-yes');
+                    }
+                });
+            }
+
+            // Update results display
+            function updateResults(tier, totalLeak, baselineRevenue, totalPenalty, leakBreakdown) {
+                const annualLeak = totalLeak * 12;
+
+                const tierData = {
+                    none: {
+                        label: 'Your Revenue Leak',
+                        message: 'Enter your baseline numbers and answer the diagnostic questions above to calculate your monthly revenue leak.',
+                        ctaTitle: 'Ready to Plug These Leaks?',
+                        ctaMessage: 'You now know exactly what\'s costing you money. Fixing these issues requires strategic design and clean code, not just a template tweak. Take our 2-minute Readiness Quiz and let\'s discuss how we can turn your website from a revenue leak into your hardest-working employee.'
+                    },
+                    minor: {
+                        label: 'Minor Leaks (Under $500/month)',
+                        message: 'Your website has small leaks that are adding up over time. These are quick wins that can be fixed with targeted optimizations. Every month you wait, you leave money on the table.',
+                        ctaTitle: 'Let\'s Fix These Quick Wins',
+                        ctaMessage: 'These small leaks are easy to fix but add up fast. Take our 2-minute Readiness Quiz and let\'s plug these holes before they become bigger problems.'
+                    },
+                    significant: {
+                        label: 'Significant Leaks ($500–$2,000/month)',
+                        message: 'Your website has meaningful leaks that are costing you real revenue. These aren\'t minor issues — they\'re structural problems that need strategic attention. The longer you wait, the more it costs you.',
+                        ctaTitle: 'Stop the Bleeding Now',
+                        ctaMessage: 'You\'re losing significant revenue every month. Take our 2-minute Readiness Quiz and let\'s discuss how we can turn your website from a liability into an asset.'
+                    },
+                    critical: {
+                        label: 'Critical Leaks ($2,000–$5,000/month)',
+                        message: 'Your website is actively costing you thousands of dollars every month. These are fundamental issues that are turning away high-value clients before they even contact you. This is an emergency.',
+                        ctaTitle: 'This is an Emergency',
+                        ctaMessage: 'You\'re losing thousands every month. Every day you wait is more revenue walking out your digital door. Take our 2-minute Readiness Quiz and let\'s fix this immediately.'
+                    },
+                    emergency: {
+                        label: 'Emergency Leaks ($5,000+/month)',
+                        message: 'Your website is hemorrhaging revenue at an alarming rate. This isn\'t just a problem — it\'s a business crisis. You\'re losing more in a year than most people earn. This needs immediate, professional intervention.',
+                        ctaTitle: 'You Need Help Immediately',
+                        ctaMessage: 'Your website is costing you tens of thousands per year. This is a business emergency. Take our 2-minute Readiness Quiz right now — let\'s stop the bleeding before it\'s too late.'
+                    }
+                };
+
+                const data = tierData[tier];
+
+                resultsSection.className = 'results-section tier-' + tier;
+                resultsTierLabel.textContent = data.label;
+                resultsBigNumber.textContent = formatCurrency(totalLeak) + ' / month';
+                resultsAnnual.textContent = 'That\'s ' + formatCurrency(annualLeak) + ' per year walking out your digital door.';
+                resultsMessage.textContent = data.message;
+
+                ctaTitle.textContent = data.ctaTitle;
+                ctaMessage.textContent = data.ctaMessage;
+
+                // Update breakdown chart
+                if (leakBreakdown.length > 0) {
+                    breakdownChart.style.display = 'block';
+                    breakdownBars.innerHTML = '';
+
+                    // Sort by loss amount (descending)
+                    leakBreakdown.sort((a, b) => b.loss - a.loss);
+
+                    // Find max loss for scaling
+                    const maxLoss = Math.max(...leakBreakdown.map(l => l.loss));
+
+                    leakBreakdown.forEach(leak => {
+                        const bar = document.createElement('div');
+                        bar.className = 'breakdown-bar';
+
+                        const percentage = (leak.loss / maxLoss) * 100;
+
+                        bar.innerHTML = `
+                            <div class="breakdown-bar-header">
+                                <span class="breakdown-bar-label">${leak.name} (${leak.penalty}% penalty)</span>
+                                <span class="breakdown-bar-value">${formatCurrency(leak.loss)}/mo</span>
+                            </div>
+                            <div class="breakdown-bar-track">
+                                <div class="breakdown-bar-fill" style="width: ${percentage}%"></div>
+                            </div>
+                        `;
+
+                        breakdownBars.appendChild(bar);
+                    });
+                } else {
+                    breakdownChart.style.display = 'none';
+                }
+
+                // Update methodology text with actual numbers
+                const visitors = parseFloat(visitorsInput.value) || 0;
+                const projectValue = parseFloat(projectValueInput.value) || 0;
+                const conversionRate = parseFloat(conversionRateInput.value) || DEFAULT_CONVERSION_RATE;
+
+                document.getElementById('methodology-text').innerHTML = `
+                    <strong>Your Calculation:</strong><br>
+                    Baseline Monthly Revenue = ${visitors.toLocaleString()} visitors × ${conversionRate}% conversion × ${formatCurrency(projectValue)} = <strong>${formatCurrency(baselineRevenue)}</strong><br>
+                    Total Penalty = ${totalPenalty}% (from ${leakBreakdown.length} identified leaks)<br>
+                    Monthly Revenue Leak = ${formatCurrency(baselineRevenue)} × ${totalPenalty}% = <strong>${formatCurrency(totalLeak)}</strong>
+                `;
+            }
+
+            // Attach event listeners
+            visitorsInput.addEventListener('input', calculateLeak);
+            projectValueInput.addEventListener('input', calculateLeak);
+            conversionRateInput.addEventListener('input', calculateLeak);
+            leakCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', calculateLeak);
+            });
+
+            // Initialize
+            calculateLeak();
+        });
+    </script>
+
+</body>
+</html>
