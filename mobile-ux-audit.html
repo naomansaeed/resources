@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile UX Quick Audit | Trogdyne</title>
+    <style>
+        /* =========================================================
+           1. DESIGN TOKENS (Trogdyne Brand)
+           ========================================================= */
+        :root {
+            --color-bg: #fafaf9;
+            --color-surface: #ffffff;
+            --color-text: #1c1917;
+            --color-text-muted: #57534e;
+            --color-border: #e7e5e4;
+            --color-primary: #5f7c6b;
+            --color-primary-hover: #4a6355;
+            --color-accent: #c9a882;
+            --color-accent-hover: #b89570;
+            --color-danger: #dc2626;
+            --color-warning: #d97706;
+            --color-caution: #ea580c;
+            --color-success: #16a34a;
+            --color-info: #2563eb;
+
+            --font-heading: 'Space Grotesk', system-ui, sans-serif;
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+            --radius-sm: 0.25rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-full: 9999px;
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+
+            --transition-fast: 150ms ease;
+            --transition-base: 250ms ease;
+        }
+
+        /* =========================================================
+           2. GLOBAL RESET & BASE
+           ========================================================= */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            line-height: 1.6;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+
+        /* =========================================================
+           3. MAIN CONTAINER
+           ========================================================= */
+        .tool-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--color-surface);
+            padding: 2rem;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* =========================================================
+           4. HEADER
+           ========================================================= */
+        .tool-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--color-primary);
+        }
+        .tool-header h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+        .tool-header h2 {
+            font-family: var(--font-heading);
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 500;
+            color: var(--color-text-muted);
+            margin-bottom: 0.75rem;
+        }
+        .tool-header .author {
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+            font-style: italic;
+        }
+
+        /* =========================================================
+           5. INSTRUCTIONS
+           ========================================================= */
+        .instructions {
+            background: #f0f4f1;
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--color-primary);
+            font-size: 0.95rem;
+        }
+        .instructions strong { color: var(--color-primary); }
+
+        /* =========================================================
+           6. LIVE SCORE COUNTER (Sticky)
+           ========================================================= */
+        .live-counter {
+            position: sticky;
+            top: 1rem;
+            background: var(--color-primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-full);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            z-index: 100;
+            transition: all var(--transition-base);
+        }
+        .live-counter .score-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0.25rem;
+        }
+        .live-counter.tier-critical { background: var(--color-danger); }
+        .live-counter.tier-needs-work { background: var(--color-caution); }
+        .live-counter.tier-good { background: var(--color-warning); color: var(--color-text); }
+        .live-counter.tier-excellent { background: var(--color-success); }
+        .live-counter.tier-none { background: var(--color-primary); }
+
+        /* =========================================================
+           7. SECTION HEADERS
+           ========================================================= */
+        .section-header {
+            font-family: var(--font-heading);
+            font-size: 1.35rem;
+            color: var(--color-primary);
+            margin: 2.5rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .section-header::before {
+            content: '';
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: var(--color-accent);
+            border-radius: 50%;
+        }
+        .section-count {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            font-weight: 400;
+            margin-left: auto;
+            font-family: var(--font-body);
+        }
+
+        /* =========================================================
+           8. QUESTION ITEMS
+           ========================================================= */
+        .question-item {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 0.75rem;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-base);
+            page-break-inside: avoid;
+        }
+        .question-item:hover { border-color: var(--color-primary); }
+        .question-item.answered-yes {
+            background: #f0f4f1;
+            border-color: var(--color-primary);
+        }
+        .question-checkbox {
+            display: flex;
+            align-items: flex-start;
+            padding-top: 0.25rem;
+        }
+        .question-checkbox input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--color-primary);
+            cursor: pointer;
+        }
+        .question-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .question-text {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--color-text);
+            line-height: 1.4;
+        }
+        .question-how-to {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            padding: 0.75rem;
+            background: rgba(201, 168, 130, 0.08);
+            border-left: 3px solid var(--color-accent);
+            border-radius: var(--radius-sm);
+            line-height: 1.5;
+        }
+        .question-how-to strong {
+            color: var(--color-text);
+            font-weight: 600;
+        }
+        .question-note {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            padding: 0.75rem;
+            background: rgba(95, 124, 107, 0.05);
+            border-left: 3px solid var(--color-primary);
+            border-radius: var(--radius-sm);
+            line-height: 1.5;
+            font-style: italic;
+        }
+        .question-note strong {
+            color: var(--color-primary);
+            font-weight: 600;
+            font-style: normal;
+        }
+
+        /* =========================================================
+           9. RESULTS SECTION
+           ========================================================= */
+        .results-section {
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--color-border);
+            transition: all var(--transition-base);
+            page-break-inside: avoid;
+        }
+        .results-section.tier-none {
+            background: var(--color-bg);
+            border-color: var(--color-border);
+        }
+        .results-section.tier-critical {
+            background: rgba(220, 38, 38, 0.05);
+            border-color: var(--color-danger);
+        }
+        .results-section.tier-needs-work {
+            background: rgba(234, 88, 12, 0.05);
+            border-color: var(--color-caution);
+        }
+        .results-section.tier-good {
+            background: rgba(217, 119, 6, 0.05);
+            border-color: var(--color-warning);
+        }
+        .results-section.tier-excellent {
+            background: rgba(22, 163, 74, 0.05);
+            border-color: var(--color-success);
+        }
+        .results-tier-label {
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+        .results-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+        .results-message {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            color: var(--color-text);
+        }
+
+        /* Breakdown Chart */
+        .breakdown-chart {
+            background: var(--color-surface);
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+        }
+        .breakdown-title {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .breakdown-item:last-child { border-bottom: none; }
+        .breakdown-label {
+            font-weight: 500;
+            color: var(--color-text);
+        }
+        .breakdown-score {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        /* Methodology */
+        .methodology {
+            background: #f0f4f1;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            line-height: 1.6;
+        }
+        .methodology strong {
+            color: var(--color-text);
+            display: block;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-heading);
+        }
+
+        /* =========================================================
+           10. CTA SECTION
+           ========================================================= */
+        .cta-section {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            background: var(--color-primary);
+            color: white;
+            border-radius: var(--radius-lg);
+            margin-top: 2rem;
+        }
+        .cta-section h3 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .cta-section p {
+            margin-bottom: 1.5rem;
+            opacity: 0.95;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+        .cta-button {
+            display: inline-block;
+            background: var(--color-accent);
+            color: var(--color-text);
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: var(--radius-full);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1.05rem;
+            transition: all var(--transition-base);
+        }
+        .cta-button:hover {
+            background: var(--color-accent-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* =========================================================
+           11. PRINT BUTTON
+           ========================================================= */
+        .print-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--color-accent);
+            color: var(--color-text);
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-full);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform var(--transition-fast);
+            z-index: 50;
+        }
+        .print-btn:hover {
+            transform: translateY(-2px);
+            background: var(--color-accent-hover);
+        }
+
+        /* =========================================================
+           12. FOOTER
+           ========================================================= */
+        .tool-footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--color-border);
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+        }
+
+        /* =========================================================
+           13. RESPONSIVE
+           ========================================================= */
+        @media (min-width: 768px) {
+            body { padding: 2rem; }
+            .tool-container { padding: 3rem; }
+        }
+
+        @media (max-width: 767px) {
+            .question-item { grid-template-columns: 1fr; }
+            .question-checkbox { justify-content: flex-start; }
+        }
+
+        /* =========================================================
+           14. PRINT STYLES
+           ========================================================= */
+        @media print {
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+                color: black;
+                font-size: 11pt;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .tool-container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .print-btn,
+            .live-counter,
+            .cta-section {
+                display: none !important;
+            }
+
+            .question-item {
+                background: white !important;
+                border: 1px solid #ccc;
+                page-break-inside: avoid;
+            }
+            .question-checkbox input[type="checkbox"] {
+                border: 1.5px solid #000;
+                appearance: none;
+                -webkit-appearance: none;
+                width: 18px;
+                height: 18px;
+            }
+            .question-item.answered-yes {
+                background: white !important;
+                border-color: #ccc;
+            }
+
+            .results-section {
+                background: white !important;
+                border: 1px solid #ccc !important;
+                page-break-inside: avoid;
+            }
+
+            .tool-footer::after {
+                content: " Interactive version: trogdyne.com/mobile-ux-audit";
+                display: block;
+                margin-top: 0.5rem;
+                font-style: italic;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PRINT BUTTON -->
+    <button class="print-btn no-print" onclick="window.print()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Print or Save as PDF
+    </button>
+
+    <!-- MAIN CONTAINER -->
+    <div class="tool-container">
+
+        <!-- HEADER -->
+        <div class="tool-header">
+            <h1>Mobile UX Quick Audit</h1>
+            <h2>Is Your Site Losing Mobile Bookings?</h2>
+            <p class="author">By Naoman Saeed, Founder of Trogdyne</p>
+        </div>
+
+        <!-- INSTRUCTIONS -->
+        <div class="instructions">
+            <p><strong>How to use this audit:</strong> Open your website on your actual smartphone. Go through each of the 10 checks below. Be brutally honest. Check the box if your site passes. The counter will update in real-time to show your mobile UX score.</p>
+        </div>
+
+        <!-- LIVE COUNTER -->
+        <div class="live-counter tier-none" id="live-counter">
+            Your Mobile UX Score: <span class="score-number" id="score-number">0</span> / 10
+        </div>
+
+        <!-- =========================================================
+             SECTION 1: TOUCH TARGET OPTIMIZATION
+             ========================================================= -->
+        <h3 class="section-header">
+            Section 1: Touch Target Optimization
+            <span class="section-count">3 questions</span>
+        </h3>
+
+        <!-- Q1: Button Size -->
+        <div class="question-item" data-question="1">
+            <div class="question-checkbox">
+                <input type="checkbox" id="q1" class="question-checkbox-input">
+            </div>
+            <div class="question-content">
+                <label class="question-text" for="q1">1. Are all buttons and interactive links at least 44×44 pixels?</label>
+                <div class="question-how-to"><strong>How to check:</strong> Use your browser's developer tools (right-click → Inspect) to measure button dimensions. Or use a ruler on your phone screen—buttons should be at least 7mm wide.</div>
+                <div class="question-note"><strong>Note:</strong> Small buttons cause "fat-finger" errors and frustrate mobile users. We can audit your touch targets and resize them to meet mobile UX standards.</div>
+            </div>
+        </div>
+
+        <!-- Q2: Spacing Between Tap Targets -->
+        <div class="question-item" data-question="2">
+            <div class="question-checkbox">
+                <input type="checkbox" id="q2" class="question-checkbox-input">
+            </div>
+            <div class="question-content">
+                <label class="question-text" for="q2">2. Is there at least 8 pixels of spacing between all buttons and links?</label>
+                <div class="question-how-to"><strong>How to check:</strong> Look at your mobile site. Can you tap one button without accidentally hitting another? Use developer tools to measure the gap between elements.</div>
+                <div class="question-note"><strong>Note:</strong> Inadequate spacing causes mis-taps and user frustration. We can add proper spacing between your interactive elements.</div>
+            </div>
+        </div>
+
+        <!-- Q3: Thumb Zone CTA -->
+        <div class="question-item" data-question="3">
+            <div class="question-checkbox">
+                <input type="checkbox" id="q3" class="question-checkbox-input">
+            </div>
+            <div class="question-content">
+                <label class="question-text" for="q3">3. Is your primary "Book Now" or "Contact" button in the "thumb zone" (lower half of the screen)?</label>
+                <div class="question-how-to"><strong>How to check:</strong> Hold your phone in one hand. Can you tap your main CTA with your thumb without stretching? It should be in the bottom 50% of the screen.</div>
+                <div class="question-note"><strong>Note:</strong> The "thumb zone" is the area easily reachable with one hand. Placing your CTA here can significantly increase mobile conversions. We can restructure your mobile layout to optimize for thumb reach.</div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             SECTION 2: MOBILE READABILITY
+             ========================================================= -->
+        <h3 class="section-header">
+            Section 2: Mobile Readability
+            <span class="section-count">2 questions</span>
+        </h3>
+
+        <!-- Q4: Body Text Size -->
+        <div class="question-item" data-question="4">
+            <div class="question-checkbox">
+                <input type="checkbox" id="q4" class="question-checkbox-input">
+            </div>
+            <div class="question-content">
+                <label class="question-text" for="q4">4. Is your body text at least 16 pixels (no pinch-to-zoom required)?</label>
+                <div class="question-how-to"><strong>How to check:</strong> Open your site on your phone. Can you read the main text without zooming in? If you have to pinch-to-zoom, your text is too small.</div>
+                <div class="question-note"><strong>Note:</strong> Small text forces users to zoom, creating friction. We can ensure your typography is mobile-optimized and readable without zooming.</div>
+            </div>
+        </div>
+
+        <!-- Q5: Contrast Ratio -->
+        <div class="question-item" data-question="5">
+            <div class="question-checkbox">
+                <input type="checkbox" id="q5" class="question-checkbox-input">
+            </div>
+            <div class="question-content">
+                <label class="question-text" for="q5">5. Do all text elements meet a 4.5:1 contrast ratio against their background?</label>
+                <div class="question-how-to"><strong>How to check:</strong> Use a contrast checker tool (like WebAIM's) to test your text colors. Light gray text on white backgrounds often fails this test.</div>
+                <div class="question-note"><strong>Note:</strong> Poor contrast makes text hard to read, especially in bright sunlight. We can adjust your color palette to meet accessibility standards.</div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             SECTION 3: MOBILE FORM UX
+             ========================================================= -->
+        <h3 class="section-header">
+            Section 3: Mobile Form UX
+            <span class="section-count">2 questions</span>
+        </h3>
+
+        <!-- Q6: Proper Input Types -->
+        <div class="question-item" data-question="6">
+            <div class="question-checkbox">
+                <input type="checkbox" id="q6" class="question-checkbox-input">
+            </div>
+            <div class="question-content">
+                <label class="question-text" for="q6">6. Do your form fields use proper input types (email, tel, number) to trigger the correct mobile keyboard?</label>
+                <div class="question-how-to"><strong>How to check:</strong> Tap on your email field. Does the keyboard show "@" and ".com"? Tap on a phone field. Does it show the number pad? If not, you're using the wrong input types.</div>
+                <div class="question-note"><strong>Note:</strong> Using proper input types triggers the correct keyboard, reducing typing errors. We can update your form fields to use the right input types.</div>
+            </div>
+        </div>
+
+        <!-- Q7: Clear Error Messages -->
+        <div class="question-item" data-question="7">
+            <div class="question-checkbox">
+                <input type="checkbox" id="q7" class="question-checkbox-input">
+            </div>
+            <div class="question-content">
+                <label class="question-text" for="q7">7. Are form error messages specific and helpful on mobile?</label>
+                <div class="question-how-to"><strong>How to check:</strong> Submit your form with invalid data. Do you see clear, specific error messages like "Please enter a valid email address" or generic messages like "Error"?</div>
+                <div class="question-note"><strong>Note:</strong> Vague error messages frustrate users and cause form abandonment. We can implement clear, specific error messaging.</div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             SECTION 4: MOBILE NAVIGATION
+             ========================================================= -->
+        <h3 class="section-header">
+            Section 4: Mobile Navigation
+            <span class="section-count">2 questions</span>
+        </h3>
+
+        <!-- Q8: Sticky CTA -->
+        <div class="question-item" data-question="8">
+            <div class="question-checkbox">
+                <input type="checkbox" id="q8" class="question-checkbox-input">
+            </div>
+            <div class="question-content">
+                <label class="question-text" for="q8">8. Is there a persistent "Book Now" or "Contact" button visible as users scroll?</label>
+                <div class="question-how-to"><strong>How to check:</strong> Scroll down your mobile site. Does your main CTA stay visible (sticky/fixed), or does it disappear as you scroll?</div>
+                <div class="question-note"><strong>Note:</strong> A sticky CTA follows the user as they scroll, making it easy to book at any time. We can implement a persistent CTA that stays visible on mobile.</div>
+            </div>
+        </div>
+
+        <!-- Q9: One-Tap Mobile Menu -->
+        <div class="question-item" data-question="9">
+            <div class="question-checkbox">
+                <input type="checkbox" id="q9" class="question-checkbox-input">
+            </div>
+            <div class="question-content">
+                <label class="question-text" for="q9">9. Is your mobile menu accessible with one tap?</label>
+                <div class="question-how-to"><strong>How to check:</strong> Look at your mobile site. Is there a clearly visible hamburger menu (☰) or menu button? Can you open it with one tap?</div>
+                <div class="question-note"><strong>Note:</strong> Hidden or hard-to-find menus frustrate mobile users. We can ensure your navigation is easily accessible.</div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             SECTION 5: TECHNICAL MOBILE ISSUES
+             ========================================================= -->
+        <h3 class="section-header">
+            Section 5: Technical Mobile Issues
+            <span class="section-count">1 question</span>
+        </h3>
+
+        <!-- Q10: No Horizontal Scrolling -->
+        <div class="question-item" data-question="10">
+            <div class="question-checkbox">
+                <input type="checkbox" id="q10" class="question-checkbox-input">
+            </div>
+            <div class="question-content">
+                <label class="question-text" for="q10">10. Does your site avoid horizontal scrolling on mobile?</label>
+                <div class="question-how-to"><strong>How to check:</strong> Swipe left and right on your mobile site. Does the page move horizontally? If yes, you have elements that are too wide for mobile screens.</div>
+                <div class="question-note"><strong>Note:</strong> Horizontal scrolling is a major mobile UX failure. We can fix layout issues causing horizontal scroll.</div>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             RESULTS SECTION
+             ========================================================= -->
+        <div class="results-section tier-none" id="results-section">
+            <div class="results-tier-label" id="results-tier-label">Your Mobile UX Score</div>
+            <h3 class="results-title" id="results-title">Answer the questions above to see your result</h3>
+            <p class="results-message" id="results-message">Each "Yes" answer adds one point to your score. Your result will appear here as you answer.</p>
+
+            <!-- Breakdown Chart -->
+            <div class="breakdown-chart" id="breakdown-chart" style="display: none;">
+                <div class="breakdown-title">Category Breakdown:</div>
+                <div class="breakdown-item">
+                    <span class="breakdown-label">Touch Target Optimization</span>
+                    <span class="breakdown-score" id="cat1-score">0/3</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="breakdown-label">Mobile Readability</span>
+                    <span class="breakdown-score" id="cat2-score">0/2</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="breakdown-label">Mobile Form UX</span>
+                    <span class="breakdown-score" id="cat3-score">0/2</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="breakdown-label">Mobile Navigation</span>
+                    <span class="breakdown-score" id="cat4-score">0/2</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="breakdown-label">Technical Issues</span>
+                    <span class="breakdown-score" id="cat5-score">0/1</span>
+                </div>
+            </div>
+
+            <!-- Methodology -->
+            <div class="methodology">
+                <strong>How We Score This:</strong>
+                Each question tests a specific mobile UX best practice backed by industry research (Google Material Design, Baymard Institute, Nielsen Norman Group, WCAG 2.1 standards). A passing score indicates your mobile site meets current UX standards.
+            </div>
+        </div>
+
+        <!-- =========================================================
+             CTA SECTION
+             ========================================================= -->
+        <div class="cta-section">
+            <h3 id="cta-title">Ready to Fix These Mobile UX Issues?</h3>
+            <p id="cta-message">You now know exactly where your mobile site is losing bookings. Fixing these issues requires strategic design and mobile-optimized code, not just template tweaks. Take our 2-minute Readiness Quiz and let's discuss how we can turn your mobile site into a booking machine.</p>
+            <a href="https://trogdyne.com/qualification/" class="cta-button" target="_blank">Take the Readiness Quiz →</a>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="tool-footer">
+            © 2026 Trogdyne. All rights reserved. | contact@trogdyne.com | trogdyne.com
+        </div>
+    </div>
+
+    <!-- =========================================================
+         JAVASCRIPT: Scoring Logic & Dynamic Updates
+         ========================================================= -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const checkboxes = document.querySelectorAll('.question-checkbox-input');
+            const scoreNumber = document.getElementById('score-number');
+            const liveCounter = document.getElementById('live-counter');
+            const resultsSection = document.getElementById('results-section');
+            const resultsTierLabel = document.getElementById('results-tier-label');
+            const resultsTitle = document.getElementById('results-title');
+            const resultsMessage = document.getElementById('results-message');
+            const breakdownChart = document.getElementById('breakdown-chart');
+            const ctaTitle = document.getElementById('cta-title');
+            const ctaMessage = document.getElementById('cta-message');
+
+            // Category mapping
+            const categoryMap = {
+                1: 1, 2: 1, 3: 1,  // Touch Targets (3 questions)
+                4: 2, 5: 2,         // Readability (2 questions)
+                6: 3, 7: 3,         // Forms (2 questions)
+                8: 4, 9: 4,         // Navigation (2 questions)
+                10: 5               // Technical (1 question)
+            };
+
+            const categoryTotals = {
+                1: 3,  // Touch Targets
+                2: 2,  // Readability
+                3: 2,  // Forms
+                4: 2,  // Navigation
+                5: 1   // Technical
+            };
+
+            // Tier definitions
+            const tiers = {
+                none: {
+                    label: 'Your Mobile UX Score',
+                    title: 'Answer the questions above to see your result',
+                    message: 'Each "Yes" answer adds one point to your score. Your result will appear here as you answer.',
+                    counterClass: 'tier-none',
+                    sectionClass: 'tier-none',
+                    ctaTitle: 'Ready to Fix These Mobile UX Issues?',
+                    ctaMessage: 'You now know exactly where your mobile site is losing bookings. Fixing these issues requires strategic design and mobile-optimized code, not just template tweaks. Take our 2-minute Readiness Quiz and let\'s discuss how we can turn your mobile site into a booking machine.'
+                },
+                critical: {
+                    label: 'Critical (0-3)',
+                    title: 'Your Mobile Site is Actively Losing Bookings',
+                    message: 'Your mobile site has fundamental UX issues that are turning away potential clients. Mobile users have zero tolerance for friction—they\'ll leave immediately and book with a competitor. These issues need immediate attention.',
+                    counterClass: 'tier-critical',
+                    sectionClass: 'tier-critical',
+                    ctaTitle: 'This is an Emergency',
+                    ctaMessage: 'Your mobile site is costing you bookings every single day. Take our 2-minute Readiness Quiz and let\'s fix these critical issues before you lose more clients.'
+                },
+                needsWork: {
+                    label: 'Needs Work (4-6)',
+                    title: 'Your Mobile Site Has Significant Friction Points',
+                    message: 'Your mobile site is functional but has notable UX issues that are causing friction. Users are struggling with touch targets, readability, or navigation. These problems are fixable but require strategic attention.',
+                    counterClass: 'tier-needs-work',
+                    sectionClass: 'tier-needs-work',
+                    ctaTitle: 'Let\'s Optimize Your Mobile Experience',
+                    ctaMessage: 'You\'re losing bookings to mobile friction. Take our 2-minute Readiness Quiz and let\'s discuss how we can create a seamless mobile booking experience.'
+                },
+                good: {
+                    label: 'Good (7-8)',
+                    title: 'Your Mobile Site is Functional but Has Room for Optimization',
+                    message: 'Your mobile site meets basic UX standards but has a few areas that could be improved. Small optimizations here can lead to meaningful increases in mobile conversions.',
+                    counterClass: 'tier-good',
+                    sectionClass: 'tier-good',
+                    ctaTitle: 'Let\'s Fine-Tune Your Mobile UX',
+                    ctaMessage: 'Your mobile site is good, but it could be great. Take our 2-minute Readiness Quiz and let\'s discuss the optimizations that will take your mobile conversions to the next level.'
+                },
+                excellent: {
+                    label: 'Excellent (9-10)',
+                    title: 'Your Mobile Site Provides a Smooth, Conversion-Optimized Experience',
+                    message: 'Excellent work! Your mobile site meets or exceeds current UX standards. Users can easily navigate, read, and book on mobile. Now it\'s time to focus on scaling your traffic and conversions.',
+                    counterClass: 'tier-excellent',
+                    sectionClass: 'tier-excellent',
+                    ctaTitle: 'Ready to Scale Your Mobile Conversions?',
+                    ctaMessage: 'Your mobile UX is excellent. Take our 2-minute Readiness Quiz and let\'s discuss advanced strategies to scale your mobile bookings and conversions.'
+                }
+            };
+
+            function updateScore() {
+                const checkedBoxes = document.querySelectorAll('.question-checkbox-input:checked');
+                const score = checkedBoxes.length;
+
+                // Update counter number
+                scoreNumber.textContent = score;
+
+                // Determine tier
+                let tier;
+                if (score === 0) {
+                    tier = tiers.none;
+                } else if (score <= 3) {
+                    tier = tiers.critical;
+                } else if (score <= 6) {
+                    tier = tiers.needsWork;
+                } else if (score <= 8) {
+                    tier = tiers.good;
+                } else {
+                    tier = tiers.excellent;
+                }
+
+                // Update live counter styling
+                liveCounter.className = 'live-counter ' + tier.counterClass;
+
+                // Update results section
+                resultsSection.className = 'results-section ' + tier.sectionClass;
+                resultsTierLabel.textContent = tier.label;
+                resultsTitle.textContent = tier.title;
+                resultsMessage.textContent = tier.message;
+
+                // Update CTA
+                ctaTitle.textContent = tier.ctaTitle;
+                ctaMessage.textContent = tier.ctaMessage;
+
+                // Update breakdown
+                if (score > 0) {
+                    breakdownChart.style.display = 'block';
+                    const categoryScores = {};
+
+                    checkedBoxes.forEach(cb => {
+                        const questionNum = parseInt(cb.closest('.question-item').dataset.question);
+                        const category = categoryMap[questionNum];
+                        categoryScores[category] = (categoryScores[category] || 0) + 1;
+                    });
+
+                    // Update category scores
+                    for (let cat = 1; cat <= 5; cat++) {
+                        const catScore = categoryScores[cat] || 0;
+                        const catTotal = categoryTotals[cat];
+                        document.getElementById(`cat${cat}-score`).textContent = `${catScore}/${catTotal}`;
+                    }
+                } else {
+                    breakdownChart.style.display = 'none';
+                }
+
+                // Update visual state of answered questions
+                document.querySelectorAll('.question-item').forEach(item => {
+                    const checkbox = item.querySelector('.question-checkbox-input');
+                    if (checkbox.checked) {
+                        item.classList.add('answered-yes');
+                    } else {
+                        item.classList.remove('answered-yes');
+                    }
+                });
+            }
+
+            // Attach event listeners to all checkboxes
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateScore);
+            });
+
+            // Initialize
+            updateScore();
+        });
+    </script>
+
+</body>
+</html>
