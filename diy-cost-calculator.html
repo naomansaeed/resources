@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIY vs. Pro Cost Calculator | Trogdyne</title>
+    <style>
+        :root {
+            --color-bg: #fafaf9;
+            --color-surface: #ffffff;
+            --color-text: #1c1917;
+            --color-text-muted: #57534e;
+            --color-border: #e7e5e4;
+            --color-primary: #5f7c6b;
+            --color-primary-hover: #4a6355;
+            --color-accent: #c9a882;
+            --color-danger: #dc2626;
+            --color-success: #16a34a;
+            --font-heading: 'Space Grotesk', system-ui, sans-serif;
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-full: 9999px;
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); line-height: 1.6; padding: 1.5rem; min-height: 100vh; }
+        .tool-container { max-width: 900px; margin: 0 auto; background: var(--color-surface); padding: 2rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); }
+        
+        /* Header */
+        .tool-header { text-align: center; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--color-primary); }
+        .tool-header h1 { font-family: var(--font-heading); font-size: clamp(1.75rem, 4vw, 2.5rem); color: var(--color-primary); margin-bottom: 0.5rem; line-height: 1.2; }
+        .tool-header h2 { font-family: var(--font-heading); font-size: clamp(1rem, 2vw, 1.2rem); font-weight: 500; color: var(--color-text-muted); margin-bottom: 0.75rem; }
+        .tool-header .author { font-size: 0.9rem; color: var(--color-text-muted); font-style: italic; }
+
+        /* Instructions */
+        .instructions { background: #f0f4f1; padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 2rem; border-left: 4px solid var(--color-primary); font-size: 0.95rem; }
+        .instructions strong { color: var(--color-primary); }
+
+        /* Rate Input Section */
+        .rate-section { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem; }
+        .rate-toggle { display: flex; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+        .rate-option { flex: 1; min-width: 200px; }
+        .rate-option input[type="radio"] { display: none; }
+        .rate-option label {
+            display: block; padding: 1rem; border: 2px solid var(--color-border); border-radius: var(--radius-md);
+            cursor: pointer; text-align: center; font-weight: 600; transition: all 0.2s ease;
+        }
+        .rate-option input[type="radio"]:checked + label {
+            border-color: var(--color-primary); background: #f0f4f1; color: var(--color-primary);
+        }
+        .rate-input-group { display: none; margin-top: 1rem; }
+        .rate-input-group.active { display: block; }
+        .rate-label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+        .rate-field { width: 100%; padding: 0.75rem 1rem; font-size: 1.1rem; border: 2px solid var(--color-border); border-radius: var(--radius-md); background: white; }
+        .rate-field:focus { outline: none; border-color: var(--color-primary); }
+        .rate-hint { font-size: 0.85rem; color: var(--color-text-muted); margin-top: 0.5rem; }
+        select.rate-field { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2357534e' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; }
+
+        /* Feature Selection */
+        .features-section { margin-bottom: 2rem; }
+        .section-title { font-family: var(--font-heading); font-size: 1.25rem; color: var(--color-primary); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-border); }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem; }
+        .feature-item {
+            display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem;
+            background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md);
+            transition: all 0.2s ease; cursor: pointer;
+        }
+        .feature-item:hover { border-color: var(--color-primary); }
+        .feature-item.selected { background: #f0f4f1; border-color: var(--color-primary); }
+        .feature-item input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--color-primary); margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+        .feature-info { flex: 1; }
+        .feature-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
+        .feature-time { font-size: 0.8rem; color: var(--color-text-muted); }
+
+        /* Results */
+        .results-section {
+            margin: 2rem 0; padding: 2rem; border-radius: var(--radius-lg);
+            border: 2px solid var(--color-border); background: var(--color-bg);
+            display: none;
+        }
+        .results-section.visible { display: block; }
+        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem; }
+        .result-column { padding: 1.5rem; border-radius: var(--radius-md); }
+        .result-column.diy { background: rgba(220, 38, 38, 0.05); border: 1px solid rgba(220, 38, 38, 0.2); }
+        .result-column.pro { background: rgba(22, 163, 74, 0.05); border: 1px solid rgba(22, 163, 74, 0.2); }
+        .result-label { font-family: var(--font-heading); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+        .diy .result-label { color: var(--color-danger); }
+        .pro .result-label { color: var(--color-success); }
+        .result-total { font-family: var(--font-heading); font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; line-height: 1; }
+        .diy .result-total { color: var(--color-danger); }
+        .pro .result-total { color: var(--color-success); }
+        .result-breakdown { font-size: 0.875rem; color: var(--color-text-muted); line-height: 1.8; }
+        .result-breakdown strong { color: var(--color-text); }
+        .savings-callout {
+            background: var(--color-primary); color: white; padding: 1.25rem; border-radius: var(--radius-md);
+            text-align: center; font-family: var(--font-heading); font-weight: 600; font-size: 1.1rem; margin-bottom: 1.5rem;
+        }
+        .methodology { background: #f0f4f1; padding: 1rem 1.25rem; border-radius: var(--radius-md); font-size: 0.8rem; color: var(--color-text-muted); line-height: 1.6; }
+        .methodology strong { color: var(--color-text); display: block; margin-bottom: 0.3rem; font-family: var(--font-heading); }
+
+        /* CTA */
+        .cta-section { text-align: center; padding: 2rem 1.5rem; background: var(--color-primary); color: white; border-radius: var(--radius-lg); margin-top: 2rem; }
+        .cta-section h3 { font-family: var(--font-heading); font-size: 1.5rem; margin-bottom: 0.75rem; }
+        .cta-section p { margin-bottom: 1.5rem; opacity: 0.95; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .cta-button { display: inline-block; background: var(--color-accent); color: var(--color-text); text-decoration: none; padding: 1rem 2rem; border-radius: var(--radius-full); font-family: var(--font-heading); font-weight: 600; font-size: 1.05rem; transition: all 0.2s ease; }
+        .cta-button:hover { background: #b89570; transform: translateY(-2px); }
+
+        /* Print Button */
+        .print-btn { position: fixed; bottom: 2rem; right: 2rem; background: var(--color-accent); color: var(--color-text); border: none; padding: 1rem 1.5rem; border-radius: var(--radius-full); font-family: var(--font-heading); font-weight: 600; cursor: pointer; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 0.5rem; z-index: 50; }
+        .print-btn:hover { transform: translateY(-2px); background: #b89570; }
+
+        /* Footer */
+        .tool-footer { text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border); font-size: 0.8rem; color: var(--color-text-muted); }
+
+        /* =========================================================
+           PRINT-ONLY WORKSHEET (Hidden on screen)
+           ========================================================= */
+        .print-worksheet { display: none; }
+
+        /* Responsive */
+        @media (max-width: 767px) {
+            .results-grid { grid-template-columns: 1fr; }
+            .rate-toggle { flex-direction: column; }
+        }
+
+        /* Print Styles */
+        @media print {
+            @page { size: A4; margin: 1.5cm; }
+            body { background: white; padding: 0; font-size: 11pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .tool-container { box-shadow: none; padding: 0; max-width: 100%; border-radius: 0; }
+            
+            /* Hide interactive elements */
+            .print-btn, .cta-section, .rate-toggle, .rate-input-group, 
+            .feature-grid, .features-section, .results-section, .instructions { display: none !important; }
+            
+            /* Show print worksheet */
+            .print-worksheet { display: block !important; }
+            
+            .pw-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #5f7c6b; }
+            .pw-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 22pt; color: #5f7c6b; margin-bottom: 0.25rem; }
+            .pw-header p { font-size: 10pt; color: #57534e; }
+            
+            .pw-section { margin-bottom: 1.25rem; page-break-inside: avoid; }
+            .pw-section-title { font-family: 'Space Grotesk', sans-serif; font-size: 13pt; font-weight: 700; color: #5f7c6b; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #e7e5e4; }
+            
+            .pw-rate-table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-bottom: 0.5rem; }
+            .pw-rate-table th, .pw-rate-table td { border: 1px solid #e7e5e4; padding: 6px 10px; text-align: left; }
+            .pw-rate-table th { background: #f0f4f1; font-weight: 600; color: #1c1917; }
+            .pw-rate-table td:last-child { text-align: right; font-weight: 600; }
+            .pw-blank-line { border-bottom: 1px solid #1c1917; display: inline-block; min-width: 80px; height: 1.2em; vertical-align: bottom; }
+            
+            .pw-checklist { list-style: none; padding: 0; }
+            .pw-checklist li { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px dotted #e7e5e4; font-size: 10pt; }
+            .pw-checklist li:last-child { border-bottom: none; }
+            .pw-checkbox { width: 16px; height: 16px; border: 1.5px solid #1c1917; display: inline-block; margin-right: 8px; vertical-align: middle; }
+            .pw-hours { font-weight: 600; color: #57534e; white-space: nowrap; }
+            
+            .pw-formula-box { background: #f0f4f1; padding: 1rem; border-radius: 4px; border-left: 3px solid #5f7c6b; font-size: 10pt; line-height: 2; }
+            .pw-formula-box strong { color: #1c1917; }
+            .pw-formula-blank { border-bottom: 1.5px solid #1c1917; display: inline-block; min-width: 100px; height: 1.3em; vertical-align: bottom; }
+            
+            .pw-pro-ref { background: #f0f4f1; padding: 0.75rem 1rem; border-radius: 4px; font-size: 10pt; margin-top: 0.5rem; }
+            .pw-pro-ref strong { color: #16a34a; }
+            
+            .pw-footer { margin-top: 1.5rem; padding-top: 0.75rem; border-top: 1px solid #e7e5e4; font-size: 8pt; color: #78716C; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Save as PDF / Print Worksheet
+    </button>
+
+    <div class="tool-container">
+        <!-- INTERACTIVE VERSION (Screen Only) -->
+        <div class="tool-header">
+            <h1>DIY vs. Pro Cost Calculator</h1>
+            <h2>The True Cost of Building Your Own Website</h2>
+            <p class="author">By Naoman Saeed, Founder of Trogdyne</p>
+        </div>
+
+        <div class="instructions">
+            <p><strong>How this works:</strong> Select your website features below. We'll calculate the hidden time cost of DIY using industry-standard learning curves, then compare it to a professional build. Your billable rate determines the true opportunity cost.</p>
+        </div>
+
+        <!-- RATE INPUT SECTION -->
+        <div class="rate-section">
+            <div class="rate-toggle">
+                <div class="rate-option">
+                    <input type="radio" name="rateMethod" id="rateActual" value="actual" checked>
+                    <label for="rateActual">💰 Enter My Actual Hourly Rate</label>
+                </div>
+                <div class="rate-option">
+                    <input type="radio" name="rateMethod" id="rateEstimate" value="estimate">
+                    <label for="rateEstimate">📊 Use Industry Estimate</label>
+                </div>
+            </div>
+            <div class="rate-input-group active" id="actualInputGroup">
+                <label class="rate-label" for="actualRate">Your Billable Hourly Rate ($)</label>
+                <input type="number" id="actualRate" class="rate-field" placeholder="e.g., 125" min="0" value="">
+                <p class="rate-hint">What do you charge clients per hour? This is the value of every hour spent on DIY instead of revenue-generating work.</p>
+            </div>
+            <div class="rate-input-group" id="estimateInputGroup">
+                <label class="rate-label" for="industrySelect">Select Your Industry</label>
+                <select id="industrySelect" class="rate-field">
+                    <option value="55">Virtual Assistant ($55/hr)</option>
+                    <option value="65">Tutor / Educator ($65/hr)</option>
+                    <option value="75">Life Coach / Wellness ($75/hr)</option>
+                    <option value="85">Event Planner ($85/hr)</option>
+                    <option value="90">Creative Professional ($90/hr)</option>
+                    <option value="90">Health Coach ($90/hr)</option>
+                    <option value="100">Therapist / Counselor ($100/hr)</option>
+                    <option value="125" selected>Business Coach / Consultant ($125/hr)</option>
+                    <option value="175">Marketing Consultant ($175/hr)</option>
+                </select>
+                <p class="rate-hint">Based on 2026 benchmarks for Pinterest-native service professionals. Switch to "Actual Rate" anytime for a personalized calculation.</p>
+            </div>
+        </div>
+
+        <!-- FEATURE SELECTION -->
+        <div class="features-section">
+            <h3 class="section-title">Select Your Website Features</h3>
+            <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 1rem;">Check every feature your site needs. Time estimates include realistic learning curve for non-developers (3x–5x curriculum baseline).</p>
+            <div class="feature-grid">
+                <label class="feature-item" data-hours="72"><input type="checkbox" class="feature-checkbox"><div class="feature-info"><div class="feature-name">Responsive Mobile Layout</div><div class="feature-time">~72 hrs learning + build</div></div></label>
+                <label class="feature-item" data-hours="96"><input type="checkbox" class="feature-checkbox"><div class="feature-info"><div class="feature-name">Custom Typography & Color System</div><div class="feature-time">~96 hrs learning + build</div></div></label>
+                <label class="feature-item" data-hours="24"><input type="checkbox" class="feature-checkbox"><div class="feature-info"><div class="feature-name">Image Optimization & Lazy Loading</div><div class="feature-time">~24 hrs learning + build</div></div></label>
+                <label class="feature-item" data-hours="24"><input type="checkbox" class="feature-checkbox"><div class="feature-info"><div class="feature-name">Accessibility Compliance (WCAG)</div><div class="feature-time">~24 hrs learning + build</div></div></label>
+                <label class="feature-item" data-hours="72"><input type="checkbox" class="feature-checkbox"><div class="feature-info"><div class="feature-name">Contact Form with Validation</div><div class="feature-time">~72 hrs learning + build</div></div></label>
+                <label class="feature-item" data-hours="96"><input type="checkbox" class="feature-checkbox"><div class="feature-info"><div class="feature-name">CRM / Email Integration</div><div class="feature-time">~96 hrs learning + build</div></div></label>
+                <label class="feature-item" data-hours="120"><input type="checkbox" class="feature-checkbox"><div class="feature-info"><div class="feature-name">Booking / Scheduling System</div><div class="feature-time">~120 hrs learning + build</div></div></label>
+                <label class="feature-item" data-hours="72"><input type="checkbox" class="feature-checkbox"><div class="feature-info"><div class="feature-name">Testimonials / Social Proof Section</div><div class="feature-time">~72 hrs learning + build</div></div></label>
+                <label class="feature-item" data-hours="144"><input type="checkbox" class="feature-checkbox"><div class="feature-info"><div class="feature-name">Secure Hosting & SSL Setup</div><div class="feature-time">~144 hrs learning + build</div></div></label>
+                <label class="feature-item" data-hours="48"><input type="checkbox" class="feature-checkbox"><div class="feature-info"><div class="feature-name">Automated Backups & Monitoring</div><div class="feature-time">~48 hrs learning + build</div></div></label>
+                <label class="feature-item" data-hours="72"><input type="checkbox" class="feature-checkbox"><div class="feature-info"><div class="feature-name">SEO Technical Foundation</div><div class="feature-time">~72 hrs learning + build</div></div></label>
+                <label class="feature-item" data-hours="48"><input type="checkbox" class="feature-checkbox"><div class="feature-info"><div class="feature-name">Performance Optimization (Core Web Vitals)</div><div class="feature-time">~48 hrs learning + build</div></div></label>
+            </div>
+            <h3 class="section-title" style="margin-top: 1.5rem;">Ongoing Monthly Maintenance</h3>
+            <div class="feature-grid">
+                <label class="feature-item" data-monthly-hours="5"><input type="checkbox" class="maintenance-checkbox" checked><div class="feature-info"><div class="feature-name">Plugin/Theme Updates & Security Patches</div><div class="feature-time">~5 hrs/month ongoing</div></div></label>
+                <label class="feature-item" data-monthly-hours="3"><input type="checkbox" class="maintenance-checkbox" checked><div class="feature-info"><div class="feature-name">Content Updates & Blog Posts</div><div class="feature-time">~3 hrs/month ongoing</div></div></label>
+                <label class="feature-item" data-monthly-hours="2"><input type="checkbox" class="maintenance-checkbox" checked><div class="feature-info"><div class="feature-name">Analytics Review & Conversion Tweaks</div><div class="feature-time">~2 hrs/month ongoing</div></div></label>
+            </div>
+        </div>
+
+        <!-- RESULTS SECTION -->
+        <div class="results-section" id="resultsSection">
+            <div class="results-grid">
+                <div class="result-column diy">
+                    <div class="result-label">True DIY Cost (Year 1)</div>
+                    <div class="result-total" id="diyTotal">$0</div>
+                    <div class="result-breakdown" id="diyBreakdown"></div>
+                </div>
+                <div class="result-column pro">
+                    <div class="result-label">Professional Build Investment</div>
+                    <div class="result-total" id="proTotal">$0</div>
+                    <div class="result-breakdown" id="proBreakdown"></div>
+                </div>
+            </div>
+            <div class="savings-callout" id="savingsCallout"></div>
+            <div class="methodology">
+                <strong>How We Calculate This:</strong>
+                DIY hours are based on industry-standard full-stack curriculum milestones multiplied by 3x–5x for non-developer learning curves (validated by 2026 adult learner data). Opportunity cost = hours × your billable rate. Professional build estimate reflects typical custom service business website pricing. Tool subscriptions: $300–$600/year. Maintenance: ongoing hours × rate × 12 months.
+            </div>
+        </div>
+
+        <!-- CTA SECTION -->
+        <div class="cta-section">
+            <h3>Ready to Stop Paying the Time Tax?</h3>
+            <p>You now know the true cost of DIY. Let's discuss how a professional build pays for itself in months, not years. Take our 2-minute Readiness Quiz to get started.</p>
+            <a href="https://trogdyne.com/qualification/" class="cta-button" target="_blank">Take the Readiness Quiz →</a>
+        </div>
+
+        <div class="tool-footer">
+            © 2026 Trogdyne. All rights reserved. | contact@trogdyne.com | trogdyne.com
+        </div>
+
+        <!-- =========================================================
+             PRINT-ONLY MANUAL CALCULATION WORKSHEET
+             ========================================================= -->
+        <div class="print-worksheet">
+            <div class="pw-header">
+                <h1>DIY vs. Pro Cost Calculator</h1>
+                <p>Manual Calculation Worksheet | By Naoman Saeed, Founder of Trogdyne</p>
+            </div>
+
+            <!-- STEP 1: HOURLY RATE -->
+            <div class="pw-section">
+                <div class="pw-section-title">Step 1: Determine Your Hourly Rate</div>
+                <p style="font-size: 9pt; color: #57534e; margin-bottom: 0.5rem;">Circle your industry rate OR write your actual billable rate:</p>
+                <table class="pw-rate-table">
+                    <tr><th>Industry</th><th>Benchmark Rate</th></tr>
+                    <tr><td>Virtual Assistant</td><td>$55/hr</td></tr>
+                    <tr><td>Tutor / Educator</td><td>$65/hr</td></tr>
+                    <tr><td>Life Coach / Wellness</td><td>$75/hr</td></tr>
+                    <tr><td>Event Planner</td><td>$85/hr</td></tr>
+                    <tr><td>Creative Professional</td><td>$90/hr</td></tr>
+                    <tr><td>Health Coach</td><td>$90/hr</td></tr>
+                    <tr><td>Therapist / Counselor</td><td>$100/hr</td></tr>
+                    <tr><td>Business Coach / Consultant</td><td>$125/hr</td></tr>
+                    <tr><td>Marketing Consultant</td><td>$175/hr</td></tr>
+                </table>
+                <p style="font-size: 10pt; margin-top: 0.5rem;">My Hourly Rate: $<span class="pw-blank-line"></span> /hr</p>
+            </div>
+
+            <!-- STEP 2: BUILD HOURS CHECKLIST -->
+            <div class="pw-section">
+                <div class="pw-section-title">Step 2: Check Features Your Site Needs & Sum Hours</div>
+                <ul class="pw-checklist">
+                    <li><span><span class="pw-checkbox"></span> Responsive Mobile Layout</span> <span class="pw-hours">72 hrs</span></li>
+                    <li><span><span class="pw-checkbox"></span> Custom Typography & Color System</span> <span class="pw-hours">96 hrs</span></li>
+                    <li><span><span class="pw-checkbox"></span> Image Optimization & Lazy Loading</span> <span class="pw-hours">24 hrs</span></li>
+                    <li><span><span class="pw-checkbox"></span> Accessibility Compliance (WCAG)</span> <span class="pw-hours">24 hrs</span></li>
+                    <li><span><span class="pw-checkbox"></span> Contact Form with Validation</span> <span class="pw-hours">72 hrs</span></li>
+                    <li><span><span class="pw-checkbox"></span> CRM / Email Integration</span> <span class="pw-hours">96 hrs</span></li>
+                    <li><span><span class="pw-checkbox"></span> Booking / Scheduling System</span> <span class="pw-hours">120 hrs</span></li>
+                    <li><span><span class="pw-checkbox"></span> Testimonials / Social Proof Section</span> <span class="pw-hours">72 hrs</span></li>
+                    <li><span><span class="pw-checkbox"></span> Secure Hosting & SSL Setup</span> <span class="pw-hours">144 hrs</span></li>
+                    <li><span><span class="pw-checkbox"></span> Automated Backups & Monitoring</span> <span class="pw-hours">48 hrs</span></li>
+                    <li><span><span class="pw-checkbox"></span> SEO Technical Foundation</span> <span class="pw-hours">72 hrs</span></li>
+                    <li><span><span class="pw-checkbox"></span> Performance Optimization (Core Web Vitals)</span> <span class="pw-hours">48 hrs</span></li>
+                </ul>
+                <p style="font-size: 10pt; margin-top: 0.75rem; font-weight: 600;">Total Build Hours: <span class="pw-blank-line"></span> hrs</p>
+            </div>
+
+            <!-- STEP 3: MAINTENANCE HOURS -->
+            <div class="pw-section">
+                <div class="pw-section-title">Step 3: Annual Maintenance Hours</div>
+                <ul class="pw-checklist">
+                    <li><span><span class="pw-checkbox"></span> Plugin/Theme Updates & Security (5 hrs/mo × 12)</span> <span class="pw-hours">60 hrs/yr</span></li>
+                    <li><span><span class="pw-checkbox"></span> Content Updates & Blog Posts (3 hrs/mo × 12)</span> <span class="pw-hours">36 hrs/yr</span></li>
+                    <li><span><span class="pw-checkbox"></span> Analytics Review & Tweaks (2 hrs/mo × 12)</span> <span class="pw-hours">24 hrs/yr</span></li>
+                </ul>
+                <p style="font-size: 10pt; margin-top: 0.75rem; font-weight: 600;">Total Annual Maintenance Hours: <span class="pw-blank-line"></span> hrs/yr</p>
+            </div>
+
+            <!-- STEP 4: CALCULATION -->
+            <div class="pw-section">
+                <div class="pw-section-title">Step 4: Calculate Your True DIY Cost</div>
+                <div class="pw-formula-box">
+                    <strong>A.</strong> Build Hours + Maintenance Hours = <span class="pw-formula-blank"></span> Total Hours<br>
+                    <strong>B.</strong> Total Hours × Your Hourly Rate = $<span class="pw-formula-blank"></span> Opportunity Cost<br>
+                    <strong>C.</strong> Add Tool Subscriptions ($450/yr) = $<span class="pw-formula-blank"></span><br>
+                    <strong>D. TRUE DIY COST (Year 1) = $<span class="pw-formula-blank"></span></strong>
+                </div>
+            </div>
+
+            <!-- STEP 5: PRO COMPARISON -->
+            <div class="pw-section">
+                <div class="pw-section-title">Step 5: Compare to Professional Build</div>
+                <div class="pw-pro-ref">
+                    <strong>Typical Professional Build:</strong> $3,000 – $6,000 (one-time)<br>
+                    <strong>Monthly Retainer:</strong> ~$150/mo ($1,800/yr)<br>
+                    <strong>Time to Launch:</strong> 4–6 weeks (vs. 3–6 months DIY)<br>
+                    <strong>Your Time Freed:</strong> All hours from Steps 2 & 3 reclaimed for client work
+                </div>
+                <div class="pw-formula-box" style="margin-top: 0.75rem;">
+                    <strong>NET YEAR 1 SAVINGS = DIY Cost (D) − Pro Cost = $<span class="pw-formula-blank"></span></strong>
+                </div>
+            </div>
+
+            <div class="pw-footer">
+                Interactive version: trogdyne.com/diy-cost-calculator | © 2026 Trogdyne | contact@trogdyne.com
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const rateActualRadio = document.getElementById('rateActual');
+            const rateEstimateRadio = document.getElementById('rateEstimate');
+            const actualInputGroup = document.getElementById('actualInputGroup');
+            const estimateInputGroup = document.getElementById('estimateInputGroup');
+            const actualRateInput = document.getElementById('actualRate');
+            const industrySelect = document.getElementById('industrySelect');
+            const featureCheckboxes = document.querySelectorAll('.feature-checkbox');
+            const maintenanceCheckboxes = document.querySelectorAll('.maintenance-checkbox');
+            const resultsSection = document.getElementById('resultsSection');
+            const diyTotalEl = document.getElementById('diyTotal');
+            const proTotalEl = document.getElementById('proTotal');
+            const diyBreakdownEl = document.getElementById('diyBreakdown');
+            const proBreakdownEl = document.getElementById('proBreakdown');
+            const savingsCalloutEl = document.getElementById('savingsCallout');
+
+            const TOOL_SUBSCRIPTION_ANNUAL = 450;
+            const PRO_BUILD_LOW = 3000;
+            const PRO_BUILD_HIGH = 6000;
+            const PRO_RETAINER_MONTHLY = 150;
+
+            function updateRateMethod() {
+                if (rateActualRadio.checked) {
+                    actualInputGroup.classList.add('active');
+                    estimateInputGroup.classList.remove('active');
+                } else {
+                    actualInputGroup.classList.remove('active');
+                    estimateInputGroup.classList.add('active');
+                }
+                calculate();
+            }
+
+            rateActualRadio.addEventListener('change', updateRateMethod);
+            rateEstimateRadio.addEventListener('change', updateRateMethod);
+
+            function getHourlyRate() {
+                if (rateActualRadio.checked) {
+                    return parseFloat(actualRateInput.value) || 0;
+                } else {
+                    return parseFloat(industrySelect.value) || 125;
+                }
+            }
+
+            function formatCurrency(amount) {
+                return '$' + Math.round(amount).toLocaleString('en-US');
+            }
+
+            function calculate() {
+                const hourlyRate = getHourlyRate();
+                let totalBuildHours = 0;
+                featureCheckboxes.forEach(cb => {
+                    if (cb.checked) totalBuildHours += parseInt(cb.closest('.feature-item').dataset.hours);
+                });
+                let monthlyMaintenanceHours = 0;
+                maintenanceCheckboxes.forEach(cb => {
+                    if (cb.checked) monthlyMaintenanceHours += parseInt(cb.closest('.feature-item').dataset.monthlyHours);
+                });
+                const annualMaintenanceHours = monthlyMaintenanceHours * 12;
+                const opportunityCost = (totalBuildHours + annualMaintenanceHours) * hourlyRate;
+                const diyTotal = opportunityCost + TOOL_SUBSCRIPTION_ANNUAL;
+                const proBuildMid = (PRO_BUILD_LOW + PRO_BUILD_HIGH) / 2;
+                const proAnnualRetainer = PRO_RETAINER_MONTHLY * 12;
+                const proTotal = proBuildMid + proAnnualRetainer;
+                const savings = diyTotal - proTotal;
+
+                if (hourlyRate > 0 && totalBuildHours > 0) {
+                    resultsSection.classList.add('visible');
+                    diyTotalEl.textContent = formatCurrency(diyTotal);
+                    diyBreakdownEl.innerHTML = `<strong>Learning + Build:</strong> ${totalBuildHours} hrs<br><strong>Annual Maintenance:</strong> ${annualMaintenanceHours} hrs<br><strong>Opportunity Cost:</strong> ${formatCurrency(opportunityCost)}<br><strong>Tools & Subscriptions:</strong> ${formatCurrency(TOOL_SUBSCRIPTION_ANNUAL)}/yr`;
+                    proTotalEl.textContent = formatCurrency(PRO_BUILD_LOW) + ' – ' + formatCurrency(PRO_BUILD_HIGH);
+                    proBreakdownEl.innerHTML = `<strong>One-Time Build:</strong> ${formatCurrency(PRO_BUILD_LOW)}–${formatCurrency(PRO_BUILD_HIGH)}<br><strong>Monthly Retainer:</strong> ${formatCurrency(PRO_RETAINER_MONTHLY)}/mo<br><strong>Time to Launch:</strong> 4–6 weeks<br><strong>Your Time Freed:</strong> ${(totalBuildHours + annualMaintenanceHours).toLocaleString()} hrs/yr`;
+                    if (savings > 0) {
+                        savingsCalloutEl.textContent = `💡 You save ${formatCurrency(savings)} in Year 1 by hiring a professional — and reclaim ${(totalBuildHours + annualMaintenanceHours).toLocaleString()} hours for client work.`;
+                        savingsCalloutEl.style.background = 'var(--color-primary)';
+                    } else {
+                        savingsCalloutEl.textContent = `Your hourly rate suggests DIY may seem cheaper upfront, but this doesn't account for rebuild risk, lost leads during build, or the 3–6 month learning delay.`;
+                        savingsCalloutEl.style.background = 'var(--color-accent)';
+                    }
+                } else {
+                    resultsSection.classList.remove('visible');
+                }
+                document.querySelectorAll('.feature-item').forEach(item => {
+                    item.classList.toggle('selected', item.querySelector('input[type="checkbox"]').checked);
+                });
+            }
+
+            actualRateInput.addEventListener('input', calculate);
+            industrySelect.addEventListener('change', calculate);
+            featureCheckboxes.forEach(cb => cb.addEventListener('change', calculate));
+            maintenanceCheckboxes.forEach(cb => cb.addEventListener('change', calculate));
+            updateRateMethod();
+        });
+    </script>
+</body>
+</html>
