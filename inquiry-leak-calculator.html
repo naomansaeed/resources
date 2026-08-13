@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inquiry Leak Calculator | Trogdyne</title>
+    <style>
+        :root {
+            --color-bg: #fafaf9;
+            --color-surface: #ffffff;
+            --color-text: #1c1917;
+            --color-text-muted: #57534e;
+            --color-border: #e7e5e4;
+            --color-primary: #5f7c6b;
+            --color-primary-hover: #4a6355;
+            --color-accent: #c9a882;
+            --color-danger: #dc2626;
+            --color-success: #16a34a;
+            --font-heading: 'Space Grotesk', system-ui, sans-serif;
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-full: 9999px;
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); line-height: 1.6; padding: 1.5rem; min-height: 100vh; }
+        .tool-container { max-width: 900px; margin: 0 auto; background: var(--color-surface); padding: 2rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); }
+
+        /* Header */
+        .tool-header { text-align: center; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--color-primary); }
+        .tool-header h1 { font-family: var(--font-heading); font-size: clamp(1.75rem, 4vw, 2.5rem); color: var(--color-primary); margin-bottom: 0.5rem; line-height: 1.2; }
+        .tool-header h2 { font-family: var(--font-heading); font-size: clamp(1rem, 2vw, 1.2rem); font-weight: 500; color: var(--color-text-muted); margin-bottom: 0.75rem; }
+        .tool-header .author { font-size: 0.9rem; color: var(--color-text-muted); font-style: italic; }
+
+        /* Instructions */
+        .instructions { background: #f0f4f1; padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 2rem; border-left: 4px solid var(--color-primary); font-size: 0.95rem; }
+        .instructions strong { color: var(--color-primary); }
+
+        /* Inputs */
+        .inputs-section { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem; }
+        .section-title { font-family: var(--font-heading); font-size: 1.25rem; color: var(--color-primary); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-border); }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+        .field label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem; }
+        .field input, .field select { width: 100%; padding: 0.75rem 1rem; font-size: 1.05rem; border: 2px solid var(--color-border); border-radius: var(--radius-md); background: white; }
+        .field input:focus, .field select:focus { outline: none; border-color: var(--color-primary); }
+        .field .hint { font-size: 0.8rem; color: var(--color-text-muted); margin-top: 0.4rem; }
+
+        /* Client value dual method */
+        .value-toggle { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .value-option { flex: 1; min-width: 200px; }
+        .value-option input[type="radio"] { display: none; }
+        .value-option label { display: block; padding: 0.9rem; border: 2px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; text-align: center; font-weight: 600; transition: all 0.2s ease; }
+        .value-option input[type="radio"]:checked + label { border-color: var(--color-primary); background: #f0f4f1; color: var(--color-primary); }
+        .value-input-group { display: none; }
+        .value-input-group.active { display: block; }
+        select.rate-field { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2357534e' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; }
+
+        /* Friction checks */
+        .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 0.75rem; }
+        .check-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); transition: all 0.2s ease; cursor: pointer; }
+        .check-item:hover { border-color: var(--color-danger); }
+        .check-item.selected { background: #FEF2F2; border-color: var(--color-danger); }
+        .check-item input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--color-danger); margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+        .check-info { flex: 1; }
+        .check-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
+        .check-penalty { font-size: 0.8rem; color: var(--color-danger); font-weight: 600; }
+
+        /* Results */
+        .results-section { margin: 2rem 0; padding: 2rem; border-radius: var(--radius-lg); border: 2px solid var(--color-border); background: var(--color-bg); display: none; }
+        .results-section.visible { display: block; }
+        .leak-headline { text-align: center; margin-bottom: 1.5rem; }
+        .leak-annual { font-family: var(--font-heading); font-size: clamp(2.2rem, 6vw, 3.2rem); font-weight: 700; color: var(--color-danger); line-height: 1.1; }
+        .leak-monthly { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 600; color: var(--color-text-muted); margin-top: 0.4rem; }
+        .human-line { text-align: center; font-size: 1.05rem; color: var(--color-text); background: #FEF2F2; border: 1px solid #FECACA; padding: 1rem 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.75rem; }
+
+        .bars { margin-bottom: 1.75rem; }
+        .bar-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; }
+        .bar-label { width: 90px; font-family: var(--font-heading); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); flex-shrink: 0; }
+        .bar-track { flex: 1; height: 28px; background: white; border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: var(--radius-md); transition: width 0.4s ease; }
+        .bar-fill.current { background: var(--color-danger); }
+        .bar-fill.potential { background: var(--color-primary); }
+        .bar-value { width: 110px; font-family: var(--font-heading); font-weight: 700; font-size: 0.95rem; flex-shrink: 0; text-align: right; }
+
+        .flag-list { list-style: none; margin-bottom: 1.75rem; }
+        .flag-list li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.7rem 1rem; background: white; border: 1px solid var(--color-border); border-left: 4px solid var(--color-danger); border-radius: var(--radius-md); margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .flag-list .flag-name { font-weight: 600; }
+        .flag-list .flag-why { display: block; font-weight: 400; color: var(--color-text-muted); font-size: 0.8rem; margin-top: 2px; }
+        .flag-list .flag-penalty { font-family: var(--font-heading); font-weight: 700; color: var(--color-danger); white-space: nowrap; }
+
+        /* Dynamic triage advice boxes */
+        .advice-box { border-radius: var(--radius-md); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+        .advice-box strong.advice-title { font-family: var(--font-heading); display: block; margin-bottom: 0.6rem; font-size: 1.05rem; }
+        .advice-box p { font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 0.6rem; }
+        .advice-box p:last-child { margin-bottom: 0; }
+        .advice-box ul { margin: 0 0 0.8rem 1.25rem; font-size: 0.9rem; color: var(--color-text-muted); }
+        .advice-box ul li { margin-bottom: 0.4rem; }
+        .advice-box ul li strong { color: var(--color-text); }
+        .advice-box .sub-label { font-family: var(--font-heading); font-weight: 700; font-size: 0.85rem; color: var(--color-text); text-transform: uppercase; letter-spacing: 0.06em; margin: 0.9rem 0 0.4rem 0; }
+
+        .advice-box.clean { background: #f0f4f1; border-left: 4px solid var(--color-primary); }
+        .advice-box.clean .advice-title { color: var(--color-primary); }
+
+        .advice-box.quick { background: #f0f4f1; border-left: 4px solid var(--color-accent); }
+        .advice-box.quick .advice-title { color: var(--color-text); }
+        .advice-box.quick .soft-cta { font-size: 0.9rem; }
+        .advice-box.quick .soft-cta a { color: var(--color-primary); font-weight: 600; text-decoration: none; }
+
+        .advice-box.critical { background: #FEF2F2; border-left: 4px solid var(--color-danger); }
+        .advice-box.critical .advice-title { color: #991B1B; }
+        .advice-box.critical .gap-note { font-style: italic; color: var(--color-text); background: white; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 0.75rem 1rem; }
+
+        .methodology { background: #f0f4f1; padding: 1rem 1.25rem; border-radius: var(--radius-md); font-size: 0.8rem; color: var(--color-text-muted); line-height: 1.6; }
+        .methodology strong { color: var(--color-text); display: block; margin-bottom: 0.3rem; font-family: var(--font-heading); }
+
+        /* CTA */
+        .cta-section { text-align: center; padding: 2rem 1.5rem; background: var(--color-primary); color: white; border-radius: var(--radius-lg); margin-top: 2rem; }
+        .cta-section h3 { font-family: var(--font-heading); font-size: 1.5rem; margin-bottom: 0.75rem; }
+        .cta-section p { margin-bottom: 1.5rem; opacity: 0.95; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .cta-button { display: inline-block; background: var(--color-accent); color: var(--color-text); text-decoration: none; padding: 1rem 2rem; border-radius: var(--radius-full); font-family: var(--font-heading); font-weight: 600; font-size: 1.05rem; transition: all 0.2s ease; }
+        .cta-button:hover { background: #b89570; transform: translateY(-2px); }
+
+        /* Print button */
+        .print-btn { position: fixed; bottom: 2rem; right: 2rem; background: var(--color-accent); color: var(--color-text); border: none; padding: 1rem 1.5rem; border-radius: var(--radius-full); font-family: var(--font-heading); font-weight: 600; cursor: pointer; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 0.5rem; z-index: 50; }
+        .print-btn:hover { transform: translateY(-2px); background: #b89570; }
+
+        .tool-footer { text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border); font-size: 0.8rem; color: var(--color-text-muted); }
+
+        /* Print worksheet hidden on screen */
+        .print-worksheet { display: none; }
+
+        @media (max-width: 767px) {
+            .input-grid { grid-template-columns: 1fr; }
+            .value-toggle { flex-direction: column; }
+            .bar-label { width: 70px; }
+            .bar-value { width: 80px; }
+        }
+
+        /* Print styles */
+        @media print {
+            @page { size: A4; margin: 1.5cm; }
+            body { background: white; padding: 0; font-size: 11pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .tool-container { box-shadow: none; padding: 0; max-width: 100%; border-radius: 0; }
+            .print-btn, .cta-section, .inputs-section, .checks-section, .results-section, .instructions { display: none !important; }
+            .print-worksheet { display: block !important; }
+
+            .pw-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #5f7c6b; }
+            .pw-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 22pt; color: #5f7c6b; margin-bottom: 0.25rem; }
+            .pw-header p { font-size: 10pt; color: #57534e; }
+            .pw-section { margin-bottom: 1.25rem; page-break-inside: avoid; }
+            .pw-section-title { font-family: 'Space Grotesk', sans-serif; font-size: 13pt; font-weight: 700; color: #5f7c6b; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #e7e5e4; }
+            .pw-rate-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-bottom: 0.5rem; }
+            .pw-rate-table th, .pw-rate-table td { border: 1px solid #e7e5e4; padding: 6px 8px; text-align: left; vertical-align: top; }
+            .pw-rate-table th { background: #f0f4f1; font-weight: 600; }
+            .pw-rate-table td:last-child { text-align: right; font-weight: 600; }
+            .pw-tag { display: inline-block; font-size: 8pt; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+            .pw-tag.you { background: #f0f4f1; color: #5f7c6b; border: 1px solid #5f7c6b; }
+            .pw-tag.custom { background: #FEF2F2; color: #991B1B; border: 1px solid #991B1B; }
+            .pw-tag.both { background: #FFFBEB; color: #92400E; border: 1px solid #D97706; }
+            .pw-blank-line { border-bottom: 1px solid #1c1917; display: inline-block; min-width: 80px; height: 1.2em; vertical-align: bottom; }
+            .pw-checklist { list-style: none; padding: 0; }
+            .pw-checklist li { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px dotted #e7e5e4; font-size: 10pt; }
+            .pw-checkbox { width: 16px; height: 16px; border: 1.5px solid #1c1917; display: inline-block; margin-right: 8px; vertical-align: middle; }
+            .pw-factor { font-weight: 600; color: #dc2626; white-space: nowrap; }
+            .pw-formula-box { background: #f0f4f1; padding: 1rem; border-radius: 4px; border-left: 3px solid #5f7c6b; font-size: 10pt; line-height: 2; }
+            .pw-formula-box strong { color: #1c1917; }
+            .pw-formula-blank { border-bottom: 1.5px solid #1c1917; display: inline-block; min-width: 90px; height: 1.3em; vertical-align: bottom; }
+            .pw-pro-ref { background: #f0f4f1; padding: 0.75rem 1rem; border-radius: 4px; font-size: 10pt; margin-top: 0.5rem; }
+            .pw-pro-ref strong { color: #16a34a; }
+            .pw-footer { margin-top: 1.5rem; padding-top: 0.75rem; border-top: 1px solid #e7e5e4; font-size: 8pt; color: #78716C; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Save as PDF / Print Worksheet
+    </button>
+
+    <div class="tool-container">
+        <!-- INTERACTIVE VERSION (Screen Only) -->
+        <div class="tool-header">
+            <h1>Inquiry Leak Calculator</h1>
+            <h2>Is Your Contact Form Repelling Clients?</h2>
+            <p class="author">By Naoman Saeed, Founder of Trogdyne</p>
+        </div>
+
+        <div class="instructions">
+            <p><strong>How this works:</strong> Tell us about your traffic and client value, then check every friction problem that applies to your current contact form. We'll estimate how many inquiries ( and how much revenue ) your form is leaking every month, and tell you exactly which fixes you can handle yourself versus which require custom engineering.</p>
+        </div>
+
+        <!-- SECTION A: BUSINESS VALUE -->
+        <div class="inputs-section">
+            <h3 class="section-title">Step 1: Your Business Numbers</h3>
+            <div class="input-grid">
+                <div class="field">
+                    <label for="visitors">Monthly Website Visitors</label>
+                    <input type="number" id="visitors" min="0" placeholder="e.g., 800">
+                    <p class="hint">Check Analytics / Search Console. Estimate if unknown.</p>
+                </div>
+                <div class="field">
+                    <label for="inquiries">Current Monthly Inquiries (optional)</label>
+                    <input type="number" id="inquiries" min="0" placeholder="e.g., 6">
+                    <p class="hint">If you know your form submissions per month, enter it for a sharper result.</p>
+                </div>
+                <div class="field">
+                    <label for="closeRate">Inquiry → Client Close Rate (%)</label>
+                    <input type="number" id="closeRate" min="1" max="100" value="25">
+                    <p class="hint">Typical service businesses close 20–30% of inquiries.</p>
+                </div>
+            </div>
+
+            <div class="value-toggle">
+                <div class="value-option">
+                    <input type="radio" name="valueMethod" id="valueActual" value="actual" checked>
+                    <label for="valueActual">💰 Enter My Actual Client Value</label>
+                </div>
+                <div class="value-option">
+                    <input type="radio" name="valueMethod" id="valueEstimate" value="estimate">
+                    <label for="valueEstimate">📊 Use Industry Estimate</label>
+                </div>
+            </div>
+            <div class="value-input-group active" id="actualValueGroup">
+                <div class="field">
+                    <label for="actualValue">Average Value of One New Client ($)</label>
+                    <input type="number" id="actualValue" min="0" placeholder="e.g., 2500">
+                    <p class="hint">What is one signed client worth to your business on average?</p>
+                </div>
+            </div>
+            <div class="value-input-group" id="estimateValueGroup">
+                <div class="field">
+                    <label for="industrySelect">Select Your Industry</label>
+                    <select id="industrySelect" class="rate-field">
+                        <option value="900">Tutor / Educator ($900 per client)</option>
+                        <option value="1200">Life Coach / Wellness ($1,200 per client)</option>
+                        <option value="1500">Therapist / Counselor ($1,500 per client)</option>
+                        <option value="2000">Virtual Assistant ($2,000 per client)</option>
+                        <option value="2500" selected>Creative Professional ($2,500 per client)</option>
+                        <option value="3500">Marketing Consultant ($3,500 per client)</option>
+                        <option value="4000">Event Planner ($4,000 per client)</option>
+                        <option value="5000">Business Consultant ($5,000 per client)</option>
+                    </select>
+                    <p class="hint">Based on typical 2026 engagement values for Pinterest-native service professionals.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION B: FRICTION CHECKS -->
+        <div class="checks-section" style="margin-bottom: 2rem;">
+            <h3 class="section-title">Step 2: Check Every Problem That Applies to Your Form</h3>
+            <div class="check-grid">
+                <label class="check-item" data-tier="split" data-penalty="0.75"
+                    data-why="Every field beyond the first few measurably drops submissions."
+                    data-fix="Cut to the 3–4 essential fields now and move the rest behind a second step after commitment."
+                    data-gap="Multi-step forms with conditional logic (progressive disclosure)">
+                    <input type="checkbox" class="friction-checkbox">
+                    <div class="check-info">
+                        <div class="check-name">It asks for more than 4 fields</div>
+                        <div class="check-penalty">−25% conversion impact</div>
+                    </div>
+                </label>
+                <label class="check-item" data-tier="quick" data-penalty="0.85"
+                    data-why="High-value prospects refuse to hand strangers their phone number."
+                    data-fix="Make the phone number optional — or remove it and collect it at the booking step, after commitment.">
+                    <input type="checkbox" class="friction-checkbox">
+                    <div class="check-info">
+                        <div class="check-name">It requires a phone number upfront</div>
+                        <div class="check-penalty">−15% conversion impact</div>
+                    </div>
+                </label>
+                <label class="check-item" data-tier="custom" data-penalty="0.80"
+                    data-why="Spam puzzles add friction — bots pass them, humans quit."
+                    data-gap="Invisible honeypot spam filtering (zero human friction)">
+                    <input type="checkbox" class="friction-checkbox">
+                    <div class="check-info">
+                        <div class="check-name">It shows a visible CAPTCHA puzzle</div>
+                        <div class="check-penalty">−20% conversion impact</div>
+                    </div>
+                </label>
+                <label class="check-item" data-tier="quick" data-penalty="0.90"
+                    data-why="Value-statement buttons (&ldquo;Get My Free Plan&rdquo;) outperform &ldquo;Submit.&rdquo;"
+                    data-fix="Swap &ldquo;Submit&rdquo; for a value statement like &ldquo;Get My Free Strategy Plan&rdquo; or &ldquo;Send My Inquiry.&rdquo;">
+                    <input type="checkbox" class="friction-checkbox">
+                    <div class="check-info">
+                        <div class="check-name">It uses a generic &ldquo;Submit&rdquo; button</div>
+                        <div class="check-penalty">−10% conversion impact</div>
+                    </div>
+                </label>
+                <label class="check-item" data-tier="split" data-penalty="0.85"
+                    data-why="No next-step CTA burns the momentum of a warm lead."
+                    data-fix="Add a response-time promise and a next step (calendar link) to your confirmation page."
+                    data-gap="An engineered post-submission flow (conditional redirects, booking link + secondary CTA)">
+                    <input type="checkbox" class="friction-checkbox">
+                    <div class="check-info">
+                        <div class="check-name">It ends at a dead-end &ldquo;Thanks!&rdquo; page</div>
+                        <div class="check-penalty">−15% conversion impact</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div class="results-section" id="resultsSection">
+            <div class="leak-headline">
+                <div class="leak-annual" id="leakAnnual">$0 / year</div>
+                <div class="leak-monthly" id="leakMonthly">≈ $0 per month in lost client revenue</div>
+            </div>
+            <div class="human-line" id="humanLine"></div>
+
+            <div class="bars">
+                <div class="bar-row">
+                    <span class="bar-label">Now</span>
+                    <div class="bar-track"><div class="bar-fill current" id="barCurrent" style="width: 0%;"></div></div>
+                    <span class="bar-value" id="barCurrentValue">0 inq/mo</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">Potential</span>
+                    <div class="bar-track"><div class="bar-fill potential" id="barPotential" style="width: 100%;"></div></div>
+                    <span class="bar-value" id="barPotentialValue">0 inq/mo</span>
+                </div>
+            </div>
+
+            <ul class="flag-list" id="flagList"></ul>
+
+            <!-- DYNAMIC TRIAGE ADVICE (replaces the old static box) -->
+            <div id="adviceSection"></div>
+
+            <div class="methodology">
+                <strong>How We Calculate This:</strong>
+                Directional estimate for decision-making, not a guarantee. Baseline: an optimized service-business form converts ~2.5% of visitors into inquiries. Penalties are multiplicative factors derived from published form-optimization case studies (field-count reductions, CAPTCHA abandonment, phone-number friction, button copy tests, post-submission flow studies). Close rate defaults to 25%.
+            </div>
+        </div>
+
+        <!-- CTA (dynamic per scenario) -->
+        <div class="cta-section">
+            <h3 id="ctaTitle">Ready to Stop the Leak?</h3>
+            <p id="ctaText">You now know what your form is burning. Let's talk about building a conversion engine that turns traffic into booked clients — while you sleep.</p>
+            <a href="https://trogdyne.com/qualification/" class="cta-button" target="_blank">Take the 2-Minute Readiness Quiz →</a>
+        </div>
+
+        <div class="tool-footer">
+            © 2026 Trogdyne. All rights reserved. | contact@trogdyne.com | trogdyne.com
+        </div>
+
+        <!-- =========================================================
+             PRINT-ONLY MANUAL CALCULATION WORKSHEET
+             ========================================================= -->
+        <div class="print-worksheet">
+            <div class="pw-header">
+                <h1>Inquiry Leak Calculator</h1>
+                <p>Manual Calculation Worksheet | By Naoman Saeed, Founder of Trogdyne</p>
+            </div>
+
+            <div class="pw-section">
+                <div class="pw-section-title">Step 1: Your Client Value</div>
+                <p style="font-size: 9pt; color: #57534e; margin-bottom: 0.5rem;">Circle your industry value OR write your actual average client value:</p>
+                <table class="pw-rate-table">
+                    <tr><th>Industry</th><th>Avg. Client Value</th></tr>
+                    <tr><td>Tutor / Educator</td><td>$900</td></tr>
+                    <tr><td>Life Coach / Wellness</td><td>$1,200</td></tr>
+                    <tr><td>Therapist / Counselor</td><td>$1,500</td></tr>
+                    <tr><td>Virtual Assistant</td><td>$2,000</td></tr>
+                    <tr><td>Creative Professional</td><td>$2,500</td></tr>
+                    <tr><td>Marketing Consultant</td><td>$3,500</td></tr>
+                    <tr><td>Event Planner</td><td>$4,000</td></tr>
+                    <tr><td>Business Consultant</td><td>$5,000</td></tr>
+                </table>
+                <p style="font-size: 10pt; margin-top: 0.5rem;">My Client Value: $<span class="pw-blank-line"></span> &nbsp;|&nbsp; My Close Rate: <span class="pw-blank-line" style="min-width:50px;"></span>% (typical: 25%)</p>
+            </div>
+
+            <div class="pw-section">
+                <div class="pw-section-title">Step 2: Check Your Form's Friction Problems</div>
+                <ul class="pw-checklist">
+                    <li><span><span class="pw-checkbox"></span> Asks for more than 4 fields</span> <span class="pw-factor">×0.75</span></li>
+                    <li><span><span class="pw-checkbox"></span> Requires a phone number upfront</span> <span class="pw-factor">×0.85</span></li>
+                    <li><span><span class="pw-checkbox"></span> Shows a visible CAPTCHA puzzle</span> <span class="pw-factor">×0.80</span></li>
+                    <li><span><span class="pw-checkbox"></span> Uses a generic "Submit" button</span> <span class="pw-factor">×0.90</span></li>
+                    <li><span><span class="pw-checkbox"></span> Ends at a dead-end "Thanks!" page</span> <span class="pw-factor">×0.85</span></li>
+                </ul>
+            </div>
+
+            <div class="pw-section">
+                <div class="pw-section-title">Step 3: Calculate Your Leak</div>
+                <div class="pw-formula-box">
+                    <strong>A.</strong> Monthly visitors: <span class="pw-formula-blank"></span><br>
+                    <strong>B.</strong> Potential inquiries = visitors × 2.5% = <span class="pw-formula-blank"></span><br>
+                    <strong>C.</strong> Penalty product = multiply factors of checked flags (e.g., 0.75 × 0.80 = 0.60) = <span class="pw-formula-blank"></span><br>
+                    <strong>D.</strong> Current inquiries = B × C = <span class="pw-formula-blank"></span><br>
+                    <strong>E.</strong> Lost inquiries = B − D = <span class="pw-formula-blank"></span><br>
+                    <strong>F.</strong> Lost clients = E × close rate = <span class="pw-formula-blank"></span><br>
+                    <strong>G.</strong> MONTHLY LEAK = F × client value = $<span class="pw-formula-blank"></span><br>
+                    <strong>H.</strong> ANNUAL LEAK = G × 12 = $<span class="pw-formula-blank"></span>
+                </div>
+            </div>
+
+            <div class="pw-section">
+                <div class="pw-section-title">Step 4: The Proportional Fix</div>
+                <table class="pw-rate-table">
+                    <tr><th>Problem</th><th>Reasonable Solution</th><th>Who Does It</th></tr>
+                    <tr>
+                        <td>More than 4 fields</td>
+                        <td>Cut to 3–4 essentials now; multi-step conditional logic when scaling.</td>
+                        <td><span class="pw-tag you">You now</span> <span class="pw-tag custom">Custom later</span></td>
+                    </tr>
+                    <tr>
+                        <td>Phone number upfront</td>
+                        <td>Make optional, or move to the booking step after commitment.</td>
+                        <td><span class="pw-tag you">You</span></td>
+                    </tr>
+                    <tr>
+                        <td>Visible CAPTCHA</td>
+                        <td>Replace with invisible honeypot filtering (don't just switch it off).</td>
+                        <td><span class="pw-tag custom">Custom</span></td>
+                    </tr>
+                    <tr>
+                        <td>Generic "Submit" button</td>
+                        <td>Value-statement copy ("Get My Free Strategy Plan").</td>
+                        <td><span class="pw-tag you">You</span></td>
+                    </tr>
+                    <tr>
+                        <td>Dead-end "Thanks!" page</td>
+                        <td>Response-time promise + calendar link now; engineered flow later.</td>
+                        <td><span class="pw-tag you">You now</span> <span class="pw-tag custom">Custom later</span></td>
+                    </tr>
+                </table>
+                <div class="pw-pro-ref">
+                    <strong>A conversion-engineered custom form</strong> (honeypot spam filtering, multi-step conditional logic, CRM + calendar auto-routing, engineered post-submission flow) typically pays for itself with <strong>one recovered client</strong>. None of these exist in drag-and-drop builders.
+                </div>
+            </div>
+
+            <div class="pw-footer">
+                Interactive version: trogdyne-resources.netlify.app/inquiry-leak-calculator | © 2026 Trogdyne | contact@trogdyne.com
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const valueActualRadio = document.getElementById('valueActual');
+            const valueEstimateRadio = document.getElementById('valueEstimate');
+            const actualValueGroup = document.getElementById('actualValueGroup');
+            const estimateValueGroup = document.getElementById('estimateValueGroup');
+            const actualValueInput = document.getElementById('actualValue');
+            const industrySelect = document.getElementById('industrySelect');
+            const visitorsInput = document.getElementById('visitors');
+            const inquiriesInput = document.getElementById('inquiries');
+            const closeRateInput = document.getElementById('closeRate');
+            const frictionCheckboxes = document.querySelectorAll('.friction-checkbox');
+            const resultsSection = document.getElementById('resultsSection');
+            const leakAnnualEl = document.getElementById('leakAnnual');
+            const leakMonthlyEl = document.getElementById('leakMonthly');
+            const humanLineEl = document.getElementById('humanLine');
+            const barCurrentEl = document.getElementById('barCurrent');
+            const barPotentialEl = document.getElementById('barPotential');
+            const barCurrentValueEl = document.getElementById('barCurrentValue');
+            const barPotentialValueEl = document.getElementById('barPotentialValue');
+            const flagListEl = document.getElementById('flagList');
+            const adviceSectionEl = document.getElementById('adviceSection');
+            const ctaTitleEl = document.getElementById('ctaTitle');
+            const ctaTextEl = document.getElementById('ctaText');
+
+            const BASELINE_CONVERSION = 0.025;
+            const GENERAL_SCALING_GAP = 'CRM + calendar auto-routing for every inquiry type (as you scale)';
+
+            function updateValueMethod() {
+                if (valueActualRadio.checked) {
+                    actualValueGroup.classList.add('active');
+                    estimateValueGroup.classList.remove('active');
+                } else {
+                    actualValueGroup.classList.remove('active');
+                    estimateValueGroup.classList.add('active');
+                }
+                calculate();
+            }
+            valueActualRadio.addEventListener('change', updateValueMethod);
+            valueEstimateRadio.addEventListener('change', updateValueMethod);
+
+            function getClientValue() {
+                if (valueActualRadio.checked) return parseFloat(actualValueInput.value) || 0;
+                return parseFloat(industrySelect.value) || 2500;
+            }
+
+            function formatCurrency(amount) {
+                return '$' + Math.round(amount).toLocaleString('en-US');
+            }
+
+            /* ---------- DYNAMIC TRIAGE ADVICE ---------- */
+            function renderAdvice(checkedItems) {
+                const quickWins = checkedItems.filter(i => i.dataset.tier !== 'custom');
+                const customFlags = checkedItems.filter(i => i.dataset.tier === 'custom');
+                const total = checkedItems.length;
+
+                // Scenario engine
+                const scenario = total === 0 ? 'S0' : (customFlags.length > 0 || total >= 3 ? 'S2' : 'S1');
+
+                if (scenario === 'S0') {
+                    adviceSectionEl.innerHTML =
+                        '<div class="advice-box clean">' +
+                        '<strong class="advice-title">Clean Bill of Health</strong>' +
+                        '<p>Your form passes the friction test. No major leaks were detected. Keep it that way as you scale, and re-run this audit whenever you add new traffic sources or offers.</p>' +
+                        '</div>';
+                    ctaTitleEl.textContent = 'Keep It That Way.';
+                    ctaTextEl.textContent = "Your form is doing its job. When you're ready to build the rest of your digital ecosystem into a true conversion engine, we'd love to help.";
+                    return;
+                }
+
+                if (scenario === 'S1') {
+                    let fixes = quickWins.map(i =>
+                        '<li><strong>' + i.querySelector('.check-name').textContent + ':</strong> ' + i.dataset.fix + '</li>'
+                    ).join('');
+                    adviceSectionEl.innerHTML =
+                        '<div class="advice-box quick">' +
+                        '<strong class="advice-title">Quick Wins. Fixable By This Afternoon</strong>' +
+                        '<ul>' + fixes + '</ul>' +
+                        '<p>These are judgment and copy changes, not major engineering solutions. You can handle them in your current builder today. When your traffic scales, builder limits (invisible spam filtering, routing, multi-step logic) become the next bottleneck. That\u2019s when custom work pays for itself.</p>' +
+                        '<p class="soft-cta">When you\u2019re ready to scale: <a href="https://trogdyne.com/qualification/" target="_blank">Take the 2-Minute Readiness Quiz &rarr;</a></p>' +
+                        '</div>';
+                    ctaTitleEl.textContent = 'Quick Wins Today! A Partner When You Scale.';
+                    ctaTextEl.textContent = "Fix the small stuff yourself this afternoon. When builder limits start capping your growth, that's the moment a custom build pays for itself.";
+                    return;
+                }
+
+                // S2 — Critical
+                let html = '<div class="advice-box critical">';
+                html += '<strong class="advice-title">Critical Friction! This Is Where Graphical Site Builders Break Down</strong>';
+
+                if (quickWins.length > 0) {
+                    html += '<p class="sub-label">Fix today (no engineer needed):</p><ul>';
+                    html += quickWins.map(i =>
+                        '<li><strong>' + i.querySelector('.check-name').textContent + ':</strong> ' + i.dataset.fix + '</li>'
+                    ).join('');
+                    html += '</ul>';
+                }
+
+                const gapItems = checkedItems
+                    .filter(i => i.dataset.gap)
+                    .map(i => '<li>' + i.dataset.gap + '</li>');
+                gapItems.push('<li>' + GENERAL_SCALING_GAP + '</li>');
+
+                html += '<p class="sub-label">What fixing this properly requires:</p><ul>' + gapItems.join('') + '</ul>';
+                html += '<p class="gap-note">None of these solutions exist in drag-and-drop builders. They each require custom engineering. and one recovered client typically pays for the entire build.</p>';
+                html += '</div>';
+
+                adviceSectionEl.innerHTML = html;
+                ctaTitleEl.textContent = 'Ready to Stop the Leak?';
+                ctaTextEl.textContent = "You now know what your form is burning. Let's talk about building a conversion engine that turns traffic into booked clients, while you sleep.";
+            }
+
+            /* ---------- MAIN CALCULATION ---------- */
+            function calculate() {
+                const visitors = parseFloat(visitorsInput.value) || 0;
+                const inquiries = parseFloat(inquiriesInput.value) || 0;
+                const closeRate = (parseFloat(closeRateInput.value) || 25) / 100;
+                const clientValue = getClientValue();
+
+                const checkedItems = [];
+                let penaltyProduct = 1;
+                frictionCheckboxes.forEach(cb => {
+                    if (cb.checked) {
+                        const item = cb.closest('.check-item');
+                        checkedItems.push(item);
+                        penaltyProduct *= parseFloat(item.dataset.penalty);
+                    }
+                });
+
+                if ((visitors > 0 || inquiries > 0) && clientValue > 0) {
+                    resultsSection.classList.add('visible');
+
+                    let currentInq, potentialInq;
+                    if (inquiries > 0) {
+                        currentInq = inquiries;
+                        potentialInq = inquiries / penaltyProduct;
+                    } else {
+                        potentialInq = visitors * BASELINE_CONVERSION;
+                        currentInq = potentialInq * penaltyProduct;
+                    }
+
+                    const lostInq = potentialInq - currentInq;
+                    const lostClients = lostInq * closeRate;
+                    const monthlyLeak = lostClients * clientValue;
+                    const annualLeak = monthlyLeak * 12;
+
+                    leakAnnualEl.textContent = formatCurrency(annualLeak) + ' / year';
+                    leakMonthlyEl.textContent = '≈ ' + formatCurrency(monthlyLeak) + ' per month in lost client revenue';
+
+                    if (lostInq < 0.5) {
+                        humanLineEl.textContent = '✅ No major friction was detected. Your form is doing its job. Keep it that way as you scale.';
+                        humanLineEl.style.background = '#F0F4F1';
+                        humanLineEl.style.borderColor = '#5f7c6b';
+                    } else {
+                        humanLineEl.textContent = '⚠️ Every month, ~' + Math.round(lostInq) + ' people who wanted to work with you gave up at the form.';
+                        humanLineEl.style.background = '#FEF2F2';
+                        humanLineEl.style.borderColor = '#FECACA';
+                    }
+
+                    const pct = potentialInq > 0 ? Math.max(4, (currentInq / potentialInq) * 100) : 0;
+                    barCurrentEl.style.width = pct + '%';
+                    barPotentialEl.style.width = '100%';
+                    barCurrentValueEl.textContent = currentInq.toFixed(1) + ' inq/mo';
+                    barPotentialValueEl.textContent = potentialInq.toFixed(1) + ' inq/mo';
+
+                    if (checkedItems.length > 0) {
+                        flagListEl.innerHTML = checkedItems.map(i =>
+                            '<li><span class="flag-name">' + i.querySelector('.check-name').textContent +
+                            '<span class="flag-why">' + i.dataset.why + '</span></span>' +
+                            '<span class="flag-penalty">−' + Math.round((1 - parseFloat(i.dataset.penalty)) * 100) + '%</span></li>'
+                        ).join('');
+                        flagListEl.style.display = 'block';
+                    } else {
+                        flagListEl.style.display = 'none';
+                    }
+
+                    renderAdvice(checkedItems);
+                } else {
+                    resultsSection.classList.remove('visible');
+                }
+
+                document.querySelectorAll('.check-item').forEach(item => {
+                    item.classList.toggle('selected', item.querySelector('input[type="checkbox"]').checked);
+                });
+            }
+
+            visitorsInput.addEventListener('input', calculate);
+            inquiriesInput.addEventListener('input', calculate);
+            closeRateInput.addEventListener('input', calculate);
+            actualValueInput.addEventListener('input', calculate);
+            industrySelect.addEventListener('change', calculate);
+            frictionCheckboxes.forEach(cb => cb.addEventListener('change', calculate));
+            updateValueMethod();
+        });
+    </script>
+</body>
+</html>
