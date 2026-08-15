@@ -651,26 +651,30 @@
                     return;
                 }
 
-                // S2 — Critical
-                let html = '<div class="advice-box critical">';
-                html += '<strong class="advice-title">Critical Friction! This Is Where Builders Break Down</strong>';
+                // S2 — Significant Friction & Builder Ceiling
+let html = '<div class="advice-box critical">';
+html += '<strong class="advice-title">Significant Friction & Your Builder\'s Ceiling</strong>';
 
-                const fixToday = checkedMath.filter(i => i.dataset.fix).concat(checkedPolish);
-                if (fixToday.length > 0) {
-                    html += '<p class="sub-label">Fix today (no engineer needed):</p><ul>' + fixToday.map(fixLi).join('') + '</ul>';
-                }
+const fixToday = checkedMath.filter(i => i.dataset.fix).concat(checkedPolish);
+if (fixToday.length > 0) {
+    html += '<p class="sub-label">1. The Quick Wins (Do this today in your builder)</p>';
+    html += '<p>You can immediately recover some of this leaked revenue by fixing these yourself:</p>';
+    html += '<ul>' + fixToday.map(fixLi).join('') + '</ul>';
+    html += '<p>Making these changes this afternoon will noticeably improve your conversion rate.</p>';
+}
 
-                const gapItems = checkedMath.filter(i => i.dataset.gap).map(i => '<li>' + i.dataset.gap + '</li>');
-                gapItems.push('<li>' + GENERAL_SCALING_GAP + '</li>');
+const gapItems = checkedMath.filter(i => i.dataset.gap).map(i => '<li>' + i.dataset.gap + '</li>');
+gapItems.push('<li>' + GENERAL_SCALING_GAP + '</li>');
 
-                html += '<p class="sub-label">What fixing this properly requires:</p><ul>' + gapItems.join('') + '</ul>';
-                html += '<p class="gap-note">None of these exist in drag-and-drop builders. They are custom engineering; and one recovered client typically pays for the entire build.</p>';
-                html += '</div>';
+html += '<p class="sub-label">2. The Builder\'s Ceiling (Where you need custom engineering)</p>';
+html += '<p>However, your audit also flagged structural limits that drag-and-drop builders simply cannot overcome. To build a true, automated conversion engine, you need:</p>';
+html += '<ul>' + gapItems.join('') + '</ul>';
+html += '<p class="gap-note">These aren\'t settings you can toggle in a page builder. They require custom code — and one recovered client typically pays for the entire build.</p>';
+html += '</div>';
 
-                adviceSectionEl.innerHTML = html;
-                ctaTitleEl.textContent = 'Ready to Stop the Leak?';
-                ctaTextEl.textContent = "You now know what your form is burning. Let's talk about building a conversion engine that turns traffic into booked clients while you sleep.";
-            }
+adviceSectionEl.innerHTML = html;
+ctaTitleEl.textContent = 'Ready to Build a Conversion Engine?';
+ctaTextEl.textContent = "You've claimed the quick wins. Now let's talk about building a system that turns traffic into booked clients — while you sleep.";
 
             /* ---------- MAIN CALCULATION ---------- */
             function calculate() {
