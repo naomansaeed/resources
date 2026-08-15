@@ -58,14 +58,37 @@
         select.rate-field { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2357534e' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; }
 
         /* Friction checks */
+        .group-label {
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin: 1.5rem 0 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .group-label:first-of-type { margin-top: 0; }
+        .group-label.structural { color: #991B1B; }
+        .group-label.polish { color: #a8835c; }
+        .group-label::before { content: ''; width: 22px; height: 3px; border-radius: 2px; }
+        .group-label.structural::before { background: #dc2626; }
+        .group-label.polish::before { background: #c9a882; }
+
         .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 0.75rem; }
         .check-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); transition: all 0.2s ease; cursor: pointer; }
         .check-item:hover { border-color: var(--color-danger); }
         .check-item.selected { background: #FEF2F2; border-color: var(--color-danger); }
         .check-item input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--color-danger); margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+        /* Polish items: tan treatment instead of red */
+        .check-item.polish:hover { border-color: var(--color-accent); }
+        .check-item.polish.selected { background: #f7f3ec; border-color: var(--color-accent); }
+        .check-item.polish input[type="checkbox"] { accent-color: var(--color-accent); }
         .check-info { flex: 1; }
         .check-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
         .check-penalty { font-size: 0.8rem; color: var(--color-danger); font-weight: 600; }
+        .check-penalty.advice { color: #a8835c; }
 
         /* Results */
         .results-section { margin: 2rem 0; padding: 2rem; border-radius: var(--radius-lg); border: 2px solid var(--color-border); background: var(--color-bg); display: none; }
@@ -151,6 +174,7 @@
             .pw-header p { font-size: 10pt; color: #57534e; }
             .pw-section { margin-bottom: 1.25rem; page-break-inside: avoid; }
             .pw-section-title { font-family: 'Space Grotesk', sans-serif; font-size: 13pt; font-weight: 700; color: #5f7c6b; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #e7e5e4; }
+            .pw-sublabel { font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #57534e; margin: 0.6rem 0 0.25rem; }
             .pw-rate-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-bottom: 0.5rem; }
             .pw-rate-table th, .pw-rate-table td { border: 1px solid #e7e5e4; padding: 6px 8px; text-align: left; vertical-align: top; }
             .pw-rate-table th { background: #f0f4f1; font-weight: 600; }
@@ -164,6 +188,7 @@
             .pw-checklist li { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px dotted #e7e5e4; font-size: 10pt; }
             .pw-checkbox { width: 16px; height: 16px; border: 1.5px solid #1c1917; display: inline-block; margin-right: 8px; vertical-align: middle; }
             .pw-factor { font-weight: 600; color: #dc2626; white-space: nowrap; }
+            .pw-factor.advice { color: #a8835c; font-size: 8.5pt; }
             .pw-formula-box { background: #f0f4f1; padding: 1rem; border-radius: 4px; border-left: 3px solid #5f7c6b; font-size: 10pt; line-height: 2; }
             .pw-formula-box strong { color: #1c1917; }
             .pw-formula-blank { border-bottom: 1.5px solid #1c1917; display: inline-block; min-width: 90px; height: 1.3em; vertical-align: bottom; }
@@ -188,7 +213,7 @@
         </div>
 
         <div class="instructions">
-            <p><strong>How this works:</strong> Tell us about your traffic and client value, then check every friction problem that applies to your current contact form. We'll estimate how many inquiries ( and how much revenue ) your form is leaking every month, and tell you exactly which fixes you can handle yourself versus which require custom engineering.</p>
+            <p><strong>How this works:</strong> Tell us about your traffic and client value, then check every problem that applies to your current contact form. <strong>Structural friction</strong> changes your leak estimate; <strong>trust &amp; polish</strong> items are advice-only quick wins. We'll estimate how many inquiries — and how much revenue — your form is leaking every month, and tell you exactly which fixes you can handle yourself versus which require custom engineering.</p>
         </div>
 
         <!-- SECTION A: BUSINESS VALUE -->
@@ -250,6 +275,8 @@
         <!-- SECTION B: FRICTION CHECKS -->
         <div class="checks-section" style="margin-bottom: 2rem;">
             <h3 class="section-title">Step 2: Check Every Problem That Applies to Your Form</h3>
+
+            <div class="group-label structural">Structural Friction — each item reduces your conversions</div>
             <div class="check-grid">
                 <label class="check-item" data-tier="split" data-penalty="0.75"
                     data-why="Every field beyond the first few measurably drops submissions."
@@ -298,6 +325,61 @@
                         <div class="check-penalty">−15% conversion impact</div>
                     </div>
                 </label>
+                <label class="check-item" data-tier="quick" data-penalty="0.85"
+                    data-why="A form visitors can't find in one click might as well not exist."
+                    data-fix="Add a persistent Contact link or CTA to your main navigation so every page is one click from the form.">
+                    <input type="checkbox" class="friction-checkbox">
+                    <div class="check-info">
+                        <div class="check-name">It's not reachable within one click from every page</div>
+                        <div class="check-penalty">−15% conversion impact</div>
+                    </div>
+                </label>
+                <label class="check-item" data-tier="quick" data-penalty="0.90"
+                    data-why="Placeholders vanish on typing — hurting memory, accessibility, and error recovery."
+                    data-fix="Add visible labels above every field; keep placeholders only as examples.">
+                    <input type="checkbox" class="friction-checkbox">
+                    <div class="check-info">
+                        <div class="check-name">It uses placeholder-only labels (no visible labels)</div>
+                        <div class="check-penalty">−10% conversion impact</div>
+                    </div>
+                </label>
+                <label class="check-item" data-tier="quick" data-penalty="0.90"
+                    data-why="Multi-column layouts get misread, slow completion, and raise error rates."
+                    data-fix="Stack your fields into a single column, top to bottom.">
+                    <input type="checkbox" class="friction-checkbox">
+                    <div class="check-info">
+                        <div class="check-name">It lays out fields in multiple columns</div>
+                        <div class="check-penalty">−10% conversion impact</div>
+                    </div>
+                </label>
+            </div>
+
+            <div class="group-label polish">Trust &amp; Polish — advice-only quick wins (no score impact)</div>
+            <div class="check-grid">
+                <label class="check-item polish"
+                    data-fix="Show errors inline next to the field and tell users exactly how to fix them (&ldquo;Enter a valid email — e.g., name@business.com&rdquo;).">
+                    <input type="checkbox" class="polish-checkbox">
+                    <div class="check-info">
+                        <div class="check-name">Errors aren't inline or don't explain the fix</div>
+                        <div class="check-penalty advice">advice only</div>
+                    </div>
+                </label>
+                <label class="check-item polish"
+                    data-fix="Add one trust line under the button: &ldquo;We'll never share your info. No spam, ever.&rdquo;">
+                    <input type="checkbox" class="polish-checkbox">
+                    <div class="check-info">
+                        <div class="check-name">No privacy reassurance near the button</div>
+                        <div class="check-penalty advice">advice only</div>
+                    </div>
+                </label>
+                <label class="check-item polish"
+                    data-fix="State what happens next: &ldquo;We reply within one business day&rdquo; or &ldquo;Instant delivery — check your inbox.&rdquo;">
+                    <input type="checkbox" class="polish-checkbox">
+                    <div class="check-info">
+                        <div class="check-name">No stated response time or delivery expectation</div>
+                        <div class="check-penalty advice">advice only</div>
+                    </div>
+                </label>
             </div>
         </div>
 
@@ -324,12 +406,12 @@
 
             <ul class="flag-list" id="flagList"></ul>
 
-            <!-- DYNAMIC TRIAGE ADVICE (replaces the old static box) -->
+            <!-- DYNAMIC TRIAGE ADVICE -->
             <div id="adviceSection"></div>
 
             <div class="methodology">
                 <strong>How We Calculate This:</strong>
-                Directional estimate for decision-making, not a guarantee. Baseline: an optimized service-business form converts ~2.5% of visitors into inquiries. Penalties are multiplicative factors derived from published form-optimization case studies (field-count reductions, CAPTCHA abandonment, phone-number friction, button copy tests, post-submission flow studies). Close rate defaults to 25%.
+                Directional estimate for decision-making, not a guarantee. Baseline: an optimized service-business form converts ~2.5% of visitors into inquiries. Structural penalties are multiplicative factors derived from published form-optimization case studies (field-count reductions, CAPTCHA abandonment, phone-number friction, button copy tests, post-submission flow studies, label &amp; layout research). Trust &amp; polish checks are qualitative quick wins — they build confidence but do not change the estimate. Close rate defaults to 25%.
             </div>
         </div>
 
@@ -371,13 +453,23 @@
             </div>
 
             <div class="pw-section">
-                <div class="pw-section-title">Step 2: Check Your Form's Friction Problems</div>
+                <div class="pw-section-title">Step 2: Check Your Form's Problems</div>
+                <div class="pw-sublabel">Structural friction (affects the math)</div>
                 <ul class="pw-checklist">
                     <li><span><span class="pw-checkbox"></span> Asks for more than 4 fields</span> <span class="pw-factor">×0.75</span></li>
                     <li><span><span class="pw-checkbox"></span> Requires a phone number upfront</span> <span class="pw-factor">×0.85</span></li>
                     <li><span><span class="pw-checkbox"></span> Shows a visible CAPTCHA puzzle</span> <span class="pw-factor">×0.80</span></li>
                     <li><span><span class="pw-checkbox"></span> Uses a generic "Submit" button</span> <span class="pw-factor">×0.90</span></li>
                     <li><span><span class="pw-checkbox"></span> Ends at a dead-end "Thanks!" page</span> <span class="pw-factor">×0.85</span></li>
+                    <li><span><span class="pw-checkbox"></span> Not reachable within one click from every page</span> <span class="pw-factor">×0.85</span></li>
+                    <li><span><span class="pw-checkbox"></span> Uses placeholder-only labels (no visible labels)</span> <span class="pw-factor">×0.90</span></li>
+                    <li><span><span class="pw-checkbox"></span> Lays out fields in multiple columns</span> <span class="pw-factor">×0.90</span></li>
+                </ul>
+                <div class="pw-sublabel">Trust &amp; polish (advice only — no factor)</div>
+                <ul class="pw-checklist">
+                    <li><span><span class="pw-checkbox"></span> Errors aren't inline or don't explain the fix</span> <span class="pw-factor advice">advice only</span></li>
+                    <li><span><span class="pw-checkbox"></span> No privacy reassurance near the button</span> <span class="pw-factor advice">advice only</span></li>
+                    <li><span><span class="pw-checkbox"></span> No stated response time / delivery expectation</span> <span class="pw-factor advice">advice only</span></li>
                 </ul>
             </div>
 
@@ -386,7 +478,7 @@
                 <div class="pw-formula-box">
                     <strong>A.</strong> Monthly visitors: <span class="pw-formula-blank"></span><br>
                     <strong>B.</strong> Potential inquiries = visitors × 2.5% = <span class="pw-formula-blank"></span><br>
-                    <strong>C.</strong> Penalty product = multiply factors of checked flags (e.g., 0.75 × 0.80 = 0.60) = <span class="pw-formula-blank"></span><br>
+                    <strong>C.</strong> Penalty product = multiply factors of checked STRUCTURAL flags only (e.g., 0.75 × 0.80 = 0.60) = <span class="pw-formula-blank"></span><br>
                     <strong>D.</strong> Current inquiries = B × C = <span class="pw-formula-blank"></span><br>
                     <strong>E.</strong> Lost inquiries = B − D = <span class="pw-formula-blank"></span><br>
                     <strong>F.</strong> Lost clients = E × close rate = <span class="pw-formula-blank"></span><br>
@@ -424,6 +516,36 @@
                         <td>Response-time promise + calendar link now; engineered flow later.</td>
                         <td><span class="pw-tag you">You now</span> <span class="pw-tag custom">Custom later</span></td>
                     </tr>
+                    <tr>
+                        <td>Not reachable within one click</td>
+                        <td>Add a persistent Contact link / CTA to the main navigation.</td>
+                        <td><span class="pw-tag you">You</span></td>
+                    </tr>
+                    <tr>
+                        <td>Placeholder-only labels</td>
+                        <td>Add visible labels above every field.</td>
+                        <td><span class="pw-tag you">You</span></td>
+                    </tr>
+                    <tr>
+                        <td>Multi-column layout</td>
+                        <td>Stack fields into a single column, top to bottom.</td>
+                        <td><span class="pw-tag you">You</span></td>
+                    </tr>
+                    <tr>
+                        <td>Errors not inline / explanatory</td>
+                        <td>Inline errors that explain exactly how to fix each field.</td>
+                        <td><span class="pw-tag you">You</span></td>
+                    </tr>
+                    <tr>
+                        <td>No privacy reassurance</td>
+                        <td>One trust line under the button ("We'll never share your info").</td>
+                        <td><span class="pw-tag you">You</span></td>
+                    </tr>
+                    <tr>
+                        <td>No stated response time</td>
+                        <td>State what happens next ("We reply within one business day").</td>
+                        <td><span class="pw-tag you">You</span></td>
+                    </tr>
                 </table>
                 <div class="pw-pro-ref">
                     <strong>A conversion-engineered custom form</strong> (honeypot spam filtering, multi-step conditional logic, CRM + calendar auto-routing, engineered post-submission flow) typically pays for itself with <strong>one recovered client</strong>. None of these exist in drag-and-drop builders.
@@ -447,7 +569,8 @@
             const visitorsInput = document.getElementById('visitors');
             const inquiriesInput = document.getElementById('inquiries');
             const closeRateInput = document.getElementById('closeRate');
-            const frictionCheckboxes = document.querySelectorAll('.friction-checkbox');
+            const mathCheckboxes = document.querySelectorAll('.friction-checkbox');
+            const polishCheckboxes = document.querySelectorAll('.polish-checkbox');
             const resultsSection = document.getElementById('resultsSection');
             const leakAnnualEl = document.getElementById('leakAnnual');
             const leakMonthlyEl = document.getElementById('leakMonthly');
@@ -486,20 +609,24 @@
                 return '$' + Math.round(amount).toLocaleString('en-US');
             }
 
-            /* ---------- DYNAMIC TRIAGE ADVICE ---------- */
-            function renderAdvice(checkedItems) {
-                const quickWins = checkedItems.filter(i => i.dataset.tier !== 'custom');
-                const customFlags = checkedItems.filter(i => i.dataset.tier === 'custom');
-                const total = checkedItems.length;
+            function fixLi(item) {
+                return '<li><strong>' + item.querySelector('.check-name').textContent + ':</strong> ' + item.dataset.fix + '</li>';
+            }
 
-                // Scenario engine
-                const scenario = total === 0 ? 'S0' : (customFlags.length > 0 || total >= 3 ? 'S2' : 'S1');
+            /* ---------- DYNAMIC TRIAGE ADVICE (8+3 aware) ---------- */
+            function renderAdvice(checkedMath, checkedPolish) {
+                const customFlags = checkedMath.filter(i => i.dataset.tier === 'custom');
+                const total = checkedMath.length + checkedPolish.length;
+
+                // Scenario engine: polish checks NEVER escalate
+                const scenario = total === 0 ? 'S0'
+                    : (customFlags.length > 0 || checkedMath.length >= 3 ? 'S2' : 'S1');
 
                 if (scenario === 'S0') {
                     adviceSectionEl.innerHTML =
                         '<div class="advice-box clean">' +
                         '<strong class="advice-title">Clean Bill of Health</strong>' +
-                        '<p>Your form passes the friction test. No major leaks were detected. Keep it that way as you scale, and re-run this audit whenever you add new traffic sources or offers.</p>' +
+                        '<p>Your form passes the friction test — no major leaks detected. Keep it that way as you scale, and re-run this audit whenever you add new traffic sources or offers.</p>' +
                         '</div>';
                     ctaTitleEl.textContent = 'Keep It That Way.';
                     ctaTextEl.textContent = "Your form is doing its job. When you're ready to build the rest of your digital ecosystem into a true conversion engine, we'd love to help.";
@@ -507,45 +634,42 @@
                 }
 
                 if (scenario === 'S1') {
-                    let fixes = quickWins.map(i =>
-                        '<li><strong>' + i.querySelector('.check-name').textContent + ':</strong> ' + i.dataset.fix + '</li>'
-                    ).join('');
-                    adviceSectionEl.innerHTML =
-                        '<div class="advice-box quick">' +
-                        '<strong class="advice-title">Quick Wins. Fixable By This Afternoon</strong>' +
-                        '<ul>' + fixes + '</ul>' +
-                        '<p>These are judgment and copy changes, not major engineering solutions. You can handle them in your current builder today. When your traffic scales, builder limits (invisible spam filtering, routing, multi-step logic) become the next bottleneck. That\u2019s when custom work pays for itself.</p>' +
-                        '<p class="soft-cta">When you\u2019re ready to scale: <a href="https://trogdyne.com/qualification/" target="_blank">Take the 2-Minute Readiness Quiz &rarr;</a></p>' +
-                        '</div>';
-                    ctaTitleEl.textContent = 'Quick Wins Today! A Partner When You Scale.';
+                    let html = '<div class="advice-box quick">';
+                    html += '<strong class="advice-title">Quick Wins — Fixable This Afternoon</strong>';
+                    const mathFixes = checkedMath.filter(i => i.dataset.fix).map(fixLi).join('');
+                    if (mathFixes) html += '<ul>' + mathFixes + '</ul>';
+                    if (checkedPolish.length > 0) {
+                        html += '<p class="sub-label">Trust polish (small copy changes that build confidence):</p>';
+                        html += '<ul>' + checkedPolish.map(fixLi).join('') + '</ul>';
+                    }
+                    html += '<p>These are judgment and copy changes, not engineering — you can handle them in your current builder today. When your traffic scales, builder limits (invisible spam filtering, routing, multi-step logic) become the next bottleneck. That\u2019s when custom work pays for itself.</p>';
+                    html += '<p class="soft-cta">When you\u2019re ready to scale: <a href="https://trogdyne.com/qualification/" target="_blank">Take the 2-Minute Readiness Quiz &rarr;</a></p>';
+                    html += '</div>';
+                    adviceSectionEl.innerHTML = html;
+                    ctaTitleEl.textContent = 'Quick Wins Today — A Partner When You Scale.';
                     ctaTextEl.textContent = "Fix the small stuff yourself this afternoon. When builder limits start capping your growth, that's the moment a custom build pays for itself.";
                     return;
                 }
 
                 // S2 — Critical
                 let html = '<div class="advice-box critical">';
-                html += '<strong class="advice-title">Critical Friction! This Is Where Graphical Site Builders Break Down</strong>';
+                html += '<strong class="advice-title">Critical Friction — This Is Where Builders Break Down</strong>';
 
-                if (quickWins.length > 0) {
-                    html += '<p class="sub-label">Fix today (no engineer needed):</p><ul>';
-                    html += quickWins.map(i =>
-                        '<li><strong>' + i.querySelector('.check-name').textContent + ':</strong> ' + i.dataset.fix + '</li>'
-                    ).join('');
-                    html += '</ul>';
+                const fixToday = checkedMath.filter(i => i.dataset.fix).concat(checkedPolish);
+                if (fixToday.length > 0) {
+                    html += '<p class="sub-label">Fix today (no engineer needed):</p><ul>' + fixToday.map(fixLi).join('') + '</ul>';
                 }
 
-                const gapItems = checkedItems
-                    .filter(i => i.dataset.gap)
-                    .map(i => '<li>' + i.dataset.gap + '</li>');
+                const gapItems = checkedMath.filter(i => i.dataset.gap).map(i => '<li>' + i.dataset.gap + '</li>');
                 gapItems.push('<li>' + GENERAL_SCALING_GAP + '</li>');
 
                 html += '<p class="sub-label">What fixing this properly requires:</p><ul>' + gapItems.join('') + '</ul>';
-                html += '<p class="gap-note">None of these solutions exist in drag-and-drop builders. They each require custom engineering. and one recovered client typically pays for the entire build.</p>';
+                html += '<p class="gap-note">None of these exist in drag-and-drop builders. They are custom engineering — and one recovered client typically pays for the entire build.</p>';
                 html += '</div>';
 
                 adviceSectionEl.innerHTML = html;
                 ctaTitleEl.textContent = 'Ready to Stop the Leak?';
-                ctaTextEl.textContent = "You now know what your form is burning. Let's talk about building a conversion engine that turns traffic into booked clients, while you sleep.";
+                ctaTextEl.textContent = "You now know what your form is burning. Let's talk about building a conversion engine that turns traffic into booked clients — while you sleep.";
             }
 
             /* ---------- MAIN CALCULATION ---------- */
@@ -555,14 +679,21 @@
                 const closeRate = (parseFloat(closeRateInput.value) || 25) / 100;
                 const clientValue = getClientValue();
 
-                const checkedItems = [];
+                // Structural (math) checks
+                const checkedMath = [];
                 let penaltyProduct = 1;
-                frictionCheckboxes.forEach(cb => {
+                mathCheckboxes.forEach(cb => {
                     if (cb.checked) {
                         const item = cb.closest('.check-item');
-                        checkedItems.push(item);
+                        checkedMath.push(item);
                         penaltyProduct *= parseFloat(item.dataset.penalty);
                     }
+                });
+
+                // Polish (advice-only) checks — never affect math or escalation
+                const checkedPolish = [];
+                polishCheckboxes.forEach(cb => {
+                    if (cb.checked) checkedPolish.push(cb.closest('.check-item'));
                 });
 
                 if ((visitors > 0 || inquiries > 0) && clientValue > 0) {
@@ -586,7 +717,7 @@
                     leakMonthlyEl.textContent = '≈ ' + formatCurrency(monthlyLeak) + ' per month in lost client revenue';
 
                     if (lostInq < 0.5) {
-                        humanLineEl.textContent = '✅ No major friction was detected. Your form is doing its job. Keep it that way as you scale.';
+                        humanLineEl.textContent = '✅ No major friction detected — your form is doing its job. Keep it that way as you scale.';
                         humanLineEl.style.background = '#F0F4F1';
                         humanLineEl.style.borderColor = '#5f7c6b';
                     } else {
@@ -601,8 +732,9 @@
                     barCurrentValueEl.textContent = currentInq.toFixed(1) + ' inq/mo';
                     barPotentialValueEl.textContent = potentialInq.toFixed(1) + ' inq/mo';
 
-                    if (checkedItems.length > 0) {
-                        flagListEl.innerHTML = checkedItems.map(i =>
+                    // Flag breakdown: structural checks only (polish has no penalty)
+                    if (checkedMath.length > 0) {
+                        flagListEl.innerHTML = checkedMath.map(i =>
                             '<li><span class="flag-name">' + i.querySelector('.check-name').textContent +
                             '<span class="flag-why">' + i.dataset.why + '</span></span>' +
                             '<span class="flag-penalty">−' + Math.round((1 - parseFloat(i.dataset.penalty)) * 100) + '%</span></li>'
@@ -612,7 +744,7 @@
                         flagListEl.style.display = 'none';
                     }
 
-                    renderAdvice(checkedItems);
+                    renderAdvice(checkedMath, checkedPolish);
                 } else {
                     resultsSection.classList.remove('visible');
                 }
@@ -627,7 +759,8 @@
             closeRateInput.addEventListener('input', calculate);
             actualValueInput.addEventListener('input', calculate);
             industrySelect.addEventListener('change', calculate);
-            frictionCheckboxes.forEach(cb => cb.addEventListener('change', calculate));
+            mathCheckboxes.forEach(cb => cb.addEventListener('change', calculate));
+            polishCheckboxes.forEach(cb => cb.addEventListener('change', calculate));
             updateValueMethod();
         });
     </script>
