@@ -213,7 +213,7 @@
         </div>
 
         <div class="instructions">
-            <p><strong>How this works:</strong> Tell us about your traffic and client value, then check every problem that applies to your current contact form. <strong>Structural friction</strong> changes your leak estimate; <strong>trust &amp; polish</strong> items are advice-only quick wins. We'll estimate how many inquiries — and how much revenue — your form is leaking every month, and tell you exactly which fixes you can handle yourself versus which require custom engineering.</p>
+            <p><strong>How this works:</strong> Tell us about your traffic and client value, then check every problem that applies to your current contact form. <strong>Structural friction</strong> changes your leak estimate; <strong>trust &amp; polish</strong> items are advice-only quick wins. We'll estimate how many inquiries (and how much revenue) your form is leaking every month, and tell you exactly which fixes you can handle yourself versus which require custom engineering.</p>
         </div>
 
         <!-- SECTION A: BUSINESS VALUE -->
@@ -276,7 +276,7 @@
         <div class="checks-section" style="margin-bottom: 2rem;">
             <h3 class="section-title">Step 2: Check Every Problem That Applies to Your Form</h3>
 
-            <div class="group-label structural">Structural Friction — each item reduces your conversions</div>
+            <div class="group-label structural">Structural Friction: each item reduces your conversions</div>
             <div class="check-grid">
                 <label class="check-item" data-tier="split" data-penalty="0.75"
                     data-why="Every field beyond the first few measurably drops submissions."
@@ -354,7 +354,7 @@
                 </label>
             </div>
 
-            <div class="group-label polish">Trust &amp; Polish — advice-only quick wins (no score impact)</div>
+            <div class="group-label polish">Trust &amp; Polish: advice-only quick wins (no score impact)</div>
             <div class="check-grid">
                 <label class="check-item polish"
                     data-fix="Show errors inline next to the field and tell users exactly how to fix them (&ldquo;Enter a valid email — e.g., name@business.com&rdquo;).">
@@ -411,7 +411,7 @@
 
             <div class="methodology">
                 <strong>How We Calculate This:</strong>
-                Directional estimate for decision-making, not a guarantee. Baseline: an optimized service-business form converts ~2.5% of visitors into inquiries. Structural penalties are multiplicative factors derived from published form-optimization case studies (field-count reductions, CAPTCHA abandonment, phone-number friction, button copy tests, post-submission flow studies, label &amp; layout research). Trust &amp; polish checks are qualitative quick wins — they build confidence but do not change the estimate. Close rate defaults to 25%.
+                Directional estimate for decision-making, not a guarantee. Baseline: an optimized service-business form converts ~2.5% of visitors into inquiries. Structural penalties are multiplicative factors derived from published form-optimization case studies (field-count reductions, CAPTCHA abandonment, phone-number friction, button copy tests, post-submission flow studies, label &amp; layout research). Trust &amp; polish checks are qualitative quick wins. They build confidence but do not change the estimate. Close rate defaults to 25%.
             </div>
         </div>
 
@@ -465,7 +465,7 @@
                     <li><span><span class="pw-checkbox"></span> Uses placeholder-only labels (no visible labels)</span> <span class="pw-factor">×0.90</span></li>
                     <li><span><span class="pw-checkbox"></span> Lays out fields in multiple columns</span> <span class="pw-factor">×0.90</span></li>
                 </ul>
-                <div class="pw-sublabel">Trust &amp; polish (advice only — no factor)</div>
+                <div class="pw-sublabel">Trust &amp; polish (advice only - no factor)</div>
                 <ul class="pw-checklist">
                     <li><span><span class="pw-checkbox"></span> Errors aren't inline or don't explain the fix</span> <span class="pw-factor advice">advice only</span></li>
                     <li><span><span class="pw-checkbox"></span> No privacy reassurance near the button</span> <span class="pw-factor advice">advice only</span></li>
@@ -626,7 +626,7 @@
                     adviceSectionEl.innerHTML =
                         '<div class="advice-box clean">' +
                         '<strong class="advice-title">Clean Bill of Health</strong>' +
-                        '<p>Your form passes the friction test — no major leaks detected. Keep it that way as you scale, and re-run this audit whenever you add new traffic sources or offers.</p>' +
+                        '<p>Your form passes the friction test. No major leaks were detected. Keep it that way as you scale, and re-run this audit whenever you add new traffic sources or offers.</p>' +
                         '</div>';
                     ctaTitleEl.textContent = 'Keep It That Way.';
                     ctaTextEl.textContent = "Your form is doing its job. When you're ready to build the rest of your digital ecosystem into a true conversion engine, we'd love to help.";
@@ -642,7 +642,7 @@
                         html += '<p class="sub-label">Trust polish (small copy changes that build confidence):</p>';
                         html += '<ul>' + checkedPolish.map(fixLi).join('') + '</ul>';
                     }
-                    html += '<p>These are judgment and copy changes, not engineering — you can handle them in your current builder today. When your traffic scales, builder limits (invisible spam filtering, routing, multi-step logic) become the next bottleneck. That\u2019s when custom work pays for itself.</p>';
+                    html += '<p>These are judgment and copy changes, not engineering. You can handle them in your current builder today. When your traffic scales, builder limits (invisible spam filtering, routing, multi-step logic) become the next bottleneck. That\u2019s when custom work pays for itself.</p>';
                     html += '<p class="soft-cta">When you\u2019re ready to scale: <a href="https://trogdyne.com/qualification/" target="_blank">Take the 2-Minute Readiness Quiz &rarr;</a></p>';
                     html += '</div>';
                     adviceSectionEl.innerHTML = html;
@@ -653,7 +653,7 @@
 
                 // S2 — Critical
                 let html = '<div class="advice-box critical">';
-                html += '<strong class="advice-title">Critical Friction — This Is Where Builders Break Down</strong>';
+                html += '<strong class="advice-title">Critical Friction! This Is Where Builders Break Down</strong>';
 
                 const fixToday = checkedMath.filter(i => i.dataset.fix).concat(checkedPolish);
                 if (fixToday.length > 0) {
@@ -664,12 +664,12 @@
                 gapItems.push('<li>' + GENERAL_SCALING_GAP + '</li>');
 
                 html += '<p class="sub-label">What fixing this properly requires:</p><ul>' + gapItems.join('') + '</ul>';
-                html += '<p class="gap-note">None of these exist in drag-and-drop builders. They are custom engineering — and one recovered client typically pays for the entire build.</p>';
+                html += '<p class="gap-note">None of these exist in drag-and-drop builders. They are custom engineering; and one recovered client typically pays for the entire build.</p>';
                 html += '</div>';
 
                 adviceSectionEl.innerHTML = html;
                 ctaTitleEl.textContent = 'Ready to Stop the Leak?';
-                ctaTextEl.textContent = "You now know what your form is burning. Let's talk about building a conversion engine that turns traffic into booked clients — while you sleep.";
+                ctaTextEl.textContent = "You now know what your form is burning. Let's talk about building a conversion engine that turns traffic into booked clients while you sleep.";
             }
 
             /* ---------- MAIN CALCULATION ---------- */
@@ -717,7 +717,7 @@
                     leakMonthlyEl.textContent = '≈ ' + formatCurrency(monthlyLeak) + ' per month in lost client revenue';
 
                     if (lostInq < 0.5) {
-                        humanLineEl.textContent = '✅ No major friction detected — your form is doing its job. Keep it that way as you scale.';
+                        humanLineEl.textContent = '✅ No major friction was detected. Your form is doing its job. Keep it that way as you scale.';
                         humanLineEl.style.background = '#F0F4F1';
                         humanLineEl.style.borderColor = '#5f7c6b';
                     } else {
