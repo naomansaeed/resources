@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website ROI Calculator | Trogdyne</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #fafaf9;
+            --color-surface: #ffffff;
+            --color-text: #1c1917;
+            --color-text-muted: #57534e;
+            --color-border: #e7e5e4;
+            --color-primary: #5f7c6b;
+            --color-primary-hover: #4a6355;
+            --color-accent: #c9a882;
+            --color-danger: #dc2626;
+            --font-heading: 'Space Grotesk', system-ui, sans-serif;
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-full: 9999px;
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); line-height: 1.6; padding: 1.5rem; min-height: 100vh; }
+        .tool-container { max-width: 900px; margin: 0 auto; background: var(--color-surface); padding: 2rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); }
+
+        /* Header */
+        .tool-header { text-align: center; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--color-primary); }
+        .tool-header h1 { font-family: var(--font-heading); font-size: clamp(1.75rem, 4vw, 2.5rem); color: var(--color-primary); margin-bottom: 0.5rem; line-height: 1.2; }
+        .tool-header h2 { font-family: var(--font-heading); font-size: clamp(1rem, 2vw, 1.2rem); font-weight: 500; color: var(--color-text-muted); margin-bottom: 0.75rem; }
+        .tool-header .author { font-size: 0.9rem; color: var(--color-text-muted); font-style: italic; }
+
+        /* Instructions */
+        .instructions { background: #f0f4f1; padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 2rem; border-left: 4px solid var(--color-primary); font-size: 0.95rem; }
+        .instructions strong { color: var(--color-primary); }
+
+        /* Graceful input notice */
+        .input-notice {
+            display: none;
+            background: #f7f3ec;
+            border-left: 4px solid var(--color-accent);
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Inputs */
+        .inputs-section { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem; }
+        .section-title { font-family: var(--font-heading); font-size: 1.25rem; color: var(--color-primary); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-border); }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+        .field label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem; }
+        .field input, .field select { width: 100%; padding: 0.75rem 1rem; font-size: 1.05rem; border: 2px solid var(--color-border); border-radius: var(--radius-md); background: white; }
+        .field input:focus, .field select:focus { outline: none; border-color: var(--color-primary); }
+        .field .hint { font-size: 0.8rem; color: var(--color-text-muted); margin-top: 0.4rem; }
+
+        /* Client value dual method */
+        .value-toggle { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .value-option { flex: 1; min-width: 200px; }
+        .value-option input[type="radio"] { display: none; }
+        .value-option label { display: block; padding: 0.9rem; border: 2px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; text-align: center; font-weight: 600; transition: all 0.2s ease; }
+        .value-option input[type="radio"]:checked + label { border-color: var(--color-primary); background: #f0f4f1; color: var(--color-primary); }
+        .value-input-group { display: none; }
+        .value-input-group.active { display: block; }
+        select.rate-field { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2357534e' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; }
+
+        /* Scenario cards */
+        .scenario-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
+        .scenario-option input[type="radio"] { display: none; }
+        .scenario-option label { display: block; padding: 1rem; border: 2px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; background: #fff; transition: all 0.2s ease; }
+        .scenario-option input[type="radio"]:checked + label { border-color: var(--color-primary); background: #f0f4f1; }
+        .scenario-name { font-family: var(--font-heading); font-weight: 700; display: block; margin-bottom: 0.3rem; }
+        .scenario-desc { font-size: 0.8rem; color: var(--color-text-muted); display: block; margin-bottom: 0.55rem; line-height: 1.4; }
+        .scenario-preview { font-family: var(--font-heading); font-size: 0.85rem; font-weight: 600; color: var(--color-primary); display: block; }
+        .assumption-note { font-size: 0.8rem; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 0; }
+
+        /* Results */
+        .results-section { margin: 2rem 0; padding: 2rem; border-radius: var(--radius-lg); border: 2px solid var(--color-border); background: var(--color-bg); display: none; }
+        .results-section.visible { display: block; }
+
+        .compare-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.75rem; }
+        .compare-card { background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1.1rem 1.25rem; }
+        .compare-card.status-quo { border-left: 4px solid #a8a29e; }
+        .compare-card.upgrade { border-left: 4px solid var(--color-primary); }
+        .compare-label { font-family: var(--font-heading); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted); margin-bottom: 0.5rem; }
+        .compare-stat { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 700; }
+        .compare-stat.sub { font-size: 0.95rem; color: var(--color-text-muted); margin-top: 0.15rem; }
+        .compare-invest { font-size: 0.8rem; color: var(--color-text-muted); margin-top: 0.5rem; }
+
+        .roi-headline { text-align: center; margin-bottom: 1.5rem; }
+        .roi-annual { font-family: var(--font-heading); font-size: clamp(2.2rem, 6vw, 3.2rem); font-weight: 700; color: var(--color-primary); line-height: 1.1; }
+        .roi-sub { font-size: 1rem; color: var(--color-text-muted); margin-top: 0.35rem; }
+        .payback-chip { display: inline-block; margin-top: 0.9rem; background: #f0f4f1; border: 1px solid var(--color-primary); color: var(--color-primary-hover); font-family: var(--font-heading); font-weight: 700; font-size: 0.95rem; padding: 0.5rem 1.1rem; border-radius: var(--radius-full); }
+
+        .breakeven-box { background: #f0f4f1; border: 1px solid #d9e2dc; border-radius: var(--radius-md); padding: 1rem 1.25rem; font-size: 1rem; margin-bottom: 1.75rem; text-align: center; }
+        .breakeven-box strong { color: var(--color-primary-hover); }
+
+        .bars { margin-bottom: 1.75rem; }
+        .bar-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; }
+        .bar-label { width: 90px; font-family: var(--font-heading); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); flex-shrink: 0; }
+        .bar-track { flex: 1; height: 28px; background: white; border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: var(--radius-md); transition: width 0.4s ease; }
+        .bar-fill.current { background: var(--color-accent); }
+        .bar-fill.projected { background: var(--color-primary); }
+        .bar-value { width: 120px; font-family: var(--font-heading); font-weight: 700; font-size: 0.95rem; flex-shrink: 0; text-align: right; }
+
+        .three-year { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.75rem; }
+        .ty-stat { background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1rem; text-align: center; }
+        .ty-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted); margin-bottom: 0.4rem; }
+        .ty-value { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700; }
+        .ty-stat.gain .ty-value { color: var(--color-primary); }
+        .ty-stat.cost .ty-value { color: var(--color-danger); }
+        .ty-note { font-size: 0.78rem; color: var(--color-text-muted); margin-top: 0.3rem; }
+
+        .verdict-box { border-radius: var(--radius-md); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+        .verdict-box .verdict-title { font-family: var(--font-heading); display: block; margin-bottom: 0.6rem; font-size: 1.1rem; }
+        .verdict-box p { font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 0.6rem; }
+        .verdict-box p:last-child { margin-bottom: 0; }
+        .verdict-box ul { margin: 0 0 0.8rem 1.25rem; font-size: 0.9rem; color: var(--color-text-muted); }
+        .verdict-box ul li { margin-bottom: 0.4rem; }
+        .verdict-box ul li strong { color: var(--color-text); }
+        .verdict-box .sub-label { font-family: var(--font-heading); font-weight: 700; font-size: 0.85rem; color: var(--color-text); text-transform: uppercase; letter-spacing: 0.06em; margin: 0.9rem 0 0.4rem 0; }
+        .verdict-box.strong, .verdict-box.yes { background: #f0f4f1; border-left: 4px solid var(--color-primary); }
+        .verdict-box.strong .verdict-title, .verdict-box.yes .verdict-title { color: var(--color-primary-hover); }
+        .verdict-box.honest, .verdict-box.hold { background: #f7f3ec; border-left: 4px solid var(--color-accent); }
+        .verdict-box.honest .verdict-title, .verdict-box.hold .verdict-title { color: #a8835c; }
+        .verdict-box .verdict-cta a { color: var(--color-primary); font-weight: 600; text-decoration: none; }
+        .verdict-box .verdict-cta a:hover { text-decoration: underline; }
+        .verdict-box .verdict-caveat { font-style: italic; }
+        .verdict-box .verdict-close { font-style: italic; color: var(--color-text); background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 0.75rem 1rem; }
+        .verdict-box .verdict-close a { color: var(--color-primary); font-style: normal; font-weight: 600; text-decoration: underline; }
+
+        .methodology { background: #f0f4f1; padding: 1rem 1.25rem; border-radius: var(--radius-md); font-size: 0.8rem; color: var(--color-text-muted); line-height: 1.6; }
+        .methodology strong { color: var(--color-text); display: block; margin-bottom: 0.3rem; font-family: var(--font-heading); }
+
+        /* CTA */
+        .cta-section { text-align: center; padding: 2rem 1.5rem; background: var(--color-primary); color: white; border-radius: var(--radius-lg); margin-top: 2rem; }
+        .cta-section h3 { font-family: var(--font-heading); font-size: 1.5rem; margin-bottom: 0.75rem; }
+        .cta-section p { margin-bottom: 1.5rem; opacity: 0.95; max-width: 620px; margin-left: auto; margin-right: auto; }
+        .cta-button { display: inline-block; background: var(--color-accent); color: var(--color-text); text-decoration: none; padding: 1rem 2rem; border-radius: var(--radius-full); font-family: var(--font-heading); font-weight: 600; font-size: 1.05rem; transition: all 0.2s ease; }
+        .cta-button:hover { background: #b89570; transform: translateY(-2px); }
+        .cta-quiet { font-weight: 600; letter-spacing: 0.05em; opacity: 0.95; margin-bottom: 0; }
+
+        /* Print button */
+        .print-btn { position: fixed; bottom: 2rem; right: 2rem; background: var(--color-accent); color: var(--color-text); border: none; padding: 1rem 1.5rem; border-radius: var(--radius-full); font-family: var(--font-heading); font-weight: 600; cursor: pointer; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 0.5rem; z-index: 50; }
+        .print-btn:hover { transform: translateY(-2px); background: #b89570; }
+
+        .tool-footer { text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border); font-size: 0.8rem; color: var(--color-text-muted); }
+
+        .print-worksheet { display: none; }
+
+        @media (max-width: 767px) {
+            .input-grid { grid-template-columns: 1fr; }
+            .scenario-grid { grid-template-columns: 1fr; }
+            .compare-row { grid-template-columns: 1fr; }
+            .three-year { grid-template-columns: 1fr; }
+            .value-toggle { flex-direction: column; }
+            .bar-label { width: 78px; }
+            .bar-value { width: 92px; }
+        }
+
+        /* Print styles */
+        @media print {
+            @page { size: A4; margin: 1.5cm; }
+            body { background: white; padding: 0; font-size: 11pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .tool-container { box-shadow: none; padding: 0; max-width: 100%; border-radius: 0; }
+            .print-btn, .cta-section, .inputs-section, .results-section, .instructions, .input-notice { display: none !important; }
+            .print-worksheet { display: block !important; }
+
+            .pw-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #5f7c6b; }
+            .pw-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 22pt; color: #5f7c6b; margin-bottom: 0.25rem; }
+            .pw-header p { font-size: 10pt; color: #57534e; }
+            .pw-section { margin-bottom: 1.25rem; page-break-inside: avoid; }
+            .pw-section-title { font-family: 'Space Grotesk', sans-serif; font-size: 13pt; font-weight: 700; color: #5f7c6b; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #e7e5e4; }
+            .pw-rate-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-bottom: 0.75rem; }
+            .pw-rate-table th, .pw-rate-table td { border: 1px solid #e7e5e4; padding: 6px 8px; text-align: left; vertical-align: top; }
+            .pw-rate-table th { background: #f0f4f1; font-weight: 600; }
+            .pw-blank-line { border-bottom: 1px solid #1c1917; display: inline-block; min-width: 80px; height: 1.2em; vertical-align: bottom; }
+            .pw-formula-box { background: #f0f4f1; padding: 1rem; border-radius: 4px; border-left: 3px solid #5f7c6b; font-size: 10pt; line-height: 2.1; }
+            .pw-formula-box strong { color: #1c1917; }
+            .pw-formula-blank { border-bottom: 1.5px solid #1c1917; display: inline-block; min-width: 90px; height: 1.3em; vertical-align: bottom; }
+            .pw-pro-ref { background: #f0f4f1; padding: 0.75rem 1rem; border-radius: 4px; font-size: 10pt; margin-top: 0.5rem; }
+            .pw-pro-ref strong { color: #16a34a; }
+            .pw-footer { margin-top: 1.5rem; padding-top: 0.75rem; border-top: 1px solid #e7e5e4; font-size: 8pt; color: #78716C; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Save My Results / Print Worksheet
+    </button>
+
+    <div class="tool-container">
+        <div class="tool-header">
+            <h1>Website ROI Calculator</h1>
+            <h2>What Would a Custom Website Need to Do to Pay for Itself?</h2>
+            <p class="author">By Naoman Saeed, Founder of Trogdyne</p>
+        </div>
+
+        <div class="instructions">
+            <p><strong>How this works:</strong> Enter your traffic, close rate, client value, and planned build cost. Then, choose the conversion uplift you believe a professional rebuild could deliver. We'll show you the break-even math transparently. If the numbers suggest you should wait, this tool will tell you.</p>
+        </div>
+
+        <!-- STEP 1 -->
+        <div class="inputs-section">
+            <h3 class="section-title">Step 1: Your Traffic &amp; Economics</h3>
+            <div class="input-grid">
+                <div class="field">
+                    <label for="visitors">Monthly Website Visitors</label>
+                    <input type="number" id="visitors" min="0" step="1" value="800" aria-describedby="visitorsHint">
+                    <p class="hint" id="visitorsHint">Check Analytics / Search Console. Estimate if unknown.</p>
+                </div>
+                <div class="field">
+                    <label for="currentConv">Current Inquiry Conversion Rate (%)</label>
+                    <input type="number" id="currentConv" min="0" max="100" step="0.01" value="2.35" aria-describedby="convHint">
+                    <p class="hint" id="convHint">Healthy band: 2–5%. 2026 average ≈ 2.35%.</p>
+                </div>
+                <div class="field">
+                    <label for="closeRate">Inquiry → Client Close Rate (%)</label>
+                    <input type="number" id="closeRate" min="0" max="100" step="0.01" value="25" aria-describedby="closeRateHint">
+                    <p class="hint" id="closeRateHint">Typical service businesses close 20–30% of inquiries.</p>
+                </div>
+            </div>
+
+            <div class="value-toggle">
+                <div class="value-option">
+                    <input type="radio" name="valueMethod" id="valueActual" value="actual" checked>
+                    <label for="valueActual">💰 Enter My Actual Client Value</label>
+                </div>
+                <div class="value-option">
+                    <input type="radio" name="valueMethod" id="valueEstimate" value="estimate">
+                    <label for="valueEstimate">📊 Use Industry Estimate</label>
+                </div>
+            </div>
+            <div class="value-input-group active" id="actualValueGroup">
+                <div class="field">
+                    <label for="actualValue">Average Value of One New Client - Project or Lifetime ($)</label>
+                    <input type="number" id="actualValue" min="0" step="1" value="2500" aria-describedby="actualValueHint">
+                    <p class="hint" id="actualValueHint">The total you earn per client relationship - a full project fee or lifetime value, not a single session.</p>
+                </div>
+            </div>
+            <div class="value-input-group" id="estimateValueGroup">
+                <div class="field">
+                    <label for="industrySelect">Select Your Industry</label>
+                    <select id="industrySelect" class="rate-field" aria-describedby="industryHint">
+                        <option value="900">Tutor / Educator ($900 per client)</option>
+                        <option value="1200">Life Coach / Wellness ($1,200 per client)</option>
+                        <option value="1500">Therapist / Counselor ($1,500 per client)</option>
+                        <option value="2000">Virtual Assistant ($2,000 per client)</option>
+                        <option value="2500" selected>Creative Professional ($2,500 per client)</option>
+                        <option value="3500">Marketing Consultant ($3,500 per client)</option>
+                        <option value="4000">Event Planner ($4,000 per client)</option>
+                        <option value="5000">Business Consultant ($5,000 per client)</option>
+                    </select>
+                    <p class="hint" id="industryHint">Typical 2026 project/lifetime engagement values for Pinterest-native service professionals.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="inputs-section">
+            <h3 class="section-title">Step 2: Your Investment</h3>
+            <div class="input-grid">
+                <div class="field">
+                    <label for="buildCost">Planned Build Cost ($)</label>
+                    <input type="number" id="buildCost" min="0" step="1" value="3000" aria-describedby="buildCostHint">
+                    <p class="hint" id="buildCostHint">Custom builds typically start around $2,000–$3,000.</p>
+                </div>
+                <div class="field">
+                    <label for="runningCost">Annual Running Cost ($)</label>
+                    <input type="number" id="runningCost" min="0" step="1" value="600" aria-describedby="runningCostHint">
+                    <p class="hint" id="runningCostHint">Hosting, maintenance, small tools - per year.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="inputs-section">
+            <h3 class="section-title">Step 3: Choose Your Assumption</h3>
+            <div class="scenario-grid">
+                <div class="scenario-option">
+                    <input type="radio" name="scenario" id="scenarioConservative" value="1.5" checked>
+                    <label for="scenarioConservative" data-mult="1.5">
+                        <span class="scenario-name">Conservative ×1.5</span>
+                        <span class="scenario-desc">Modest UX cleanup and friction removal.</span>
+                        <span class="scenario-preview"></span>
+                    </label>
+                </div>
+                <div class="scenario-option">
+                    <input type="radio" name="scenario" id="scenarioModerate" value="2">
+                    <label for="scenarioModerate" data-mult="2">
+                        <span class="scenario-name">Moderate ×2</span>
+                        <span class="scenario-desc">Professionally rebuilt form and funnel.</span>
+                        <span class="scenario-preview"></span>
+                    </label>
+                </div>
+                <div class="scenario-option">
+                    <input type="radio" name="scenario" id="scenarioAggressive" value="3">
+                    <label for="scenarioAggressive" data-mult="3">
+                        <span class="scenario-name">Ambitious ×3</span>
+                        <span class="scenario-desc">Hitting the upper ceiling of UX optimization.</span>
+                        <span class="scenario-preview"></span>
+                    </label>
+                </div>
+            </div>
+            <p class="assumption-note">These scenarios are grounded in Forrester Research - a well-designed UI lifts conversion up to +200%; better UX up to +400%. To keep projections realistic, the maximum conversion rate is strictly capped at 8%.</p>
+        </div>
+
+        <!-- Graceful notice for zero/missing inputs -->
+        <div class="input-notice" id="inputNotice" role="status" aria-live="polite"></div>
+
+        <!-- RESULTS -->
+        <div class="results-section" id="resultsSection" aria-live="polite">
+            <h3 class="section-title">The Break-Even Math</h3>
+
+            <div class="compare-row">
+                <div class="compare-card status-quo">
+                    <div class="compare-label">If You Do Nothing</div>
+                    <div class="compare-stat"><span id="sqClients">0</span> clients/yr</div>
+                    <div class="compare-stat sub" id="sqRevenue">$0 / yr revenue</div>
+                    <div class="compare-invest">$0 new investment</div>
+                </div>
+                <div class="compare-card upgrade">
+                    <div class="compare-label">With the Rebuild</div>
+                    <div class="compare-stat"><span id="upClients">0</span> clients/yr</div>
+                    <div class="compare-stat sub" id="upRevenue">$0 / yr revenue</div>
+                    <div class="compare-invest" id="upInvest">-</div>
+                </div>
+            </div>
+
+            <div class="roi-headline">
+                <div class="roi-annual" id="addedRevenueEl">≈ $0 / yr</div>
+                <div class="roi-sub">added revenue from the rebuild</div>
+                <div class="payback-chip" id="paybackChip">pays for itself in -</div>
+            </div>
+
+            <div class="breakeven-box">
+                Break-even: <strong>~<span id="beClients">0</span> clients</strong>. The rebuild projects <strong>~<span id="addedClientsEl">0</span> extra clients per year</strong>.
+            </div>
+
+            <div class="bars">
+                <div class="bar-row">
+                    <span class="bar-label">Now</span>
+                    <div class="bar-track"><div class="bar-fill current" id="barCurrent" style="width: 0%;"></div></div>
+                    <span class="bar-value" id="barCurrentValue">0 clients/yr</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">Projected</span>
+                    <div class="bar-track"><div class="bar-fill projected" id="barProjected" style="width: 100%;"></div></div>
+                    <span class="bar-value" id="barProjectedValue">0 clients/yr</span>
+                </div>
+            </div>
+
+            <div class="three-year">
+                <div class="ty-stat gain">
+                    <div class="ty-label">3-Yr Added Revenue</div>
+                    <div class="ty-value" id="tyRevenue">$0</div>
+                </div>
+                <div class="ty-stat cost">
+                    <div class="ty-label">Total Investment</div>
+                    <div class="ty-value" id="tyInvest">$0</div>
+                    <div class="ty-note">build + 3 yrs running cost</div>
+                </div>
+                <div class="ty-stat net">
+                    <div class="ty-label">3-Yr Net Value</div>
+                    <div class="ty-value" id="tyNet">$0</div>
+                    <div class="ty-note" id="tyMultiple">-</div>
+                </div>
+            </div>
+
+            <div id="verdictBox"></div>
+
+            <div class="methodology">
+                <strong>How We Calculate This:</strong>
+                This is a directional estimate for decision-making, not a guarantee. Every output derives directly from your inputs. Baseline inquiry conversion defaults to 2.35% (2026 cross-industry average), and close rate defaults to 25%. Uplift scenarios are capped at 8% to reflect realistic market ceilings.
+            </div>
+        </div>
+
+        <!-- CTA (dynamic per verdict) -->
+        <div class="cta-section" id="ctaSection">
+            <h3>Ready to Build the Engine?</h3>
+            <p>You've seen the math - the remaining question is who builds it so it actually converts. Take the 2-Minute Readiness Quiz and let's find out if we're the right fit for each other.</p>
+            <a href="https://trogdyne.com/qualification/" class="cta-button" target="_blank">Take the 2-Minute Readiness Quiz →</a>
+        </div>
+
+        <div class="tool-footer">
+            © 2026 Trogdyne. All rights reserved. | contact@trogdyne.com | trogdyne.com
+        </div>
+
+        <!-- =========================================================
+             PRINT WORKSHEET: PERSONALIZED RESULTS + BLANK RE-RUN
+             ========================================================= -->
+        <div class="print-worksheet">
+            <div class="pw-header">
+                <h1>Website ROI Calculator</h1>
+                <p>Your Break-Even Report | By Naoman Saeed, Founder of Trogdyne</p>
+            </div>
+
+            <!-- PERSONALIZED SNAPSHOT (auto-filled) -->
+            <div class="pw-section">
+                <div class="pw-section-title">Your Results</div>
+                <table class="pw-rate-table">
+                    <tr><th colspan="2">Your Inputs</th></tr>
+                    <tr><td>Monthly visitors</td><td><span id="pVisitors">-</span></td></tr>
+                    <tr><td>Current conversion</td><td><span id="pConv">-</span></td></tr>
+                    <tr><td>Close rate</td><td><span id="pCloseRate">-</span></td></tr>
+                    <tr><td>Client value (project / lifetime)</td><td><span id="pClientValue">-</span></td></tr>
+                    <tr><td>Planned build cost</td><td><span id="pBuildCost">-</span></td></tr>
+                    <tr><td>Annual running cost</td><td><span id="pRunningCost">-</span></td></tr>
+                    <tr><td>Scenario chosen</td><td><span id="pScenario">-</span></td></tr>
+                </table>
+                <table class="pw-rate-table">
+                    <tr><th colspan="2">The Math</th></tr>
+                    <tr><td>Clients per year (now → projected)</td><td><span id="pClientsNowProj">-</span></td></tr>
+                    <tr><td>Added clients per year</td><td><span id="pAddedClients">-</span></td></tr>
+                    <tr><td>Added revenue per year</td><td><span id="pAddedRevenue">-</span></td></tr>
+                    <tr><td>Break-even</td><td><span id="pBreakEven">-</span></td></tr>
+                    <tr><td>Payback period</td><td><span id="pPayback">-</span></td></tr>
+                    <tr><td>3-year net value</td><td><span id="pThreeYearNet">-</span></td></tr>
+                    <tr><td><strong>Verdict</strong></td><td><strong><span id="pVerdict">-</span></strong></td></tr>
+                </table>
+            </div>
+
+            <!-- REFERENCE + BLANK RE-RUN -->
+            <div class="pw-section">
+                <div class="pw-section-title">Step 1: Client Value Reference</div>
+                <table class="pw-rate-table">
+                    <tr><th>Industry</th><th>Avg. Client Value</th></tr>
+                    <tr><td>Tutor / Educator</td><td>$900</td></tr>
+                    <tr><td>Life Coach / Wellness</td><td>$1,200</td></tr>
+                    <tr><td>Therapist / Counselor</td><td>$1,500</td></tr>
+                    <tr><td>Virtual Assistant</td><td>$2,000</td></tr>
+                    <tr><td>Creative Professional</td><td>$2,500</td></tr>
+                    <tr><td>Marketing Consultant</td><td>$3,500</td></tr>
+                    <tr><td>Event Planner</td><td>$4,000</td></tr>
+                    <tr><td>Business Consultant</td><td>$5,000</td></tr>
+                </table>
+            </div>
+
+            <div class="pw-section">
+                <div class="pw-section-title">Step 2: Re-Run With Different Numbers</div>
+                <p style="font-size: 10pt; line-height: 2.2;">
+                    Monthly visitors: <span class="pw-blank-line"></span> &nbsp;&nbsp; Current conversion: <span class="pw-blank-line" style="min-width:50px;"></span>%<br>
+                    Scenario multiplier: ×<span class="pw-blank-line" style="min-width:40px;"></span> &nbsp;&nbsp; Build cost: $<span class="pw-blank-line"></span> &nbsp;&nbsp; Running cost: $<span class="pw-blank-line" style="min-width:60px;"></span>/yr<br>
+                    Client value: $<span class="pw-blank-line"></span> &nbsp;&nbsp; Close rate: <span class="pw-blank-line" style="min-width:50px;"></span>%
+                </p>
+            </div>
+
+            <div class="pw-section">
+                <div class="pw-section-title">Step 3: The Math (Formulas)</div>
+                <div class="pw-formula-box">
+                    <strong>A.</strong> Current inquiries/mo = visitors × conversion = <span class="pw-formula-blank"></span><br>
+                    <strong>B.</strong> Projected conversion = conversion × multiplier (cap 8%) = <span class="pw-formula-blank"></span>%<br>
+                    <strong>C.</strong> Projected inquiries/mo = visitors × projected conversion = <span class="pw-formula-blank"></span><br>
+                    <strong>D.</strong> Clients/yr = inquiries × 12 × close rate → current: <span class="pw-formula-blank"></span> &nbsp; projected: <span class="pw-formula-blank"></span><br>
+                    <strong>E.</strong> Added clients = projected − current = <span class="pw-formula-blank"></span><br>
+                    <strong>F.</strong> ADDED REVENUE = E × client value = $<span class="pw-formula-blank"></span> / yr<br>
+                    <strong>G.</strong> Break-even clients = build cost ÷ client value = <span class="pw-formula-blank"></span><br>
+                    <strong>H.</strong> Payback = build cost ÷ (F ÷ 12) = <span class="pw-formula-blank"></span> months<br>
+                    <strong>I.</strong> 3-YR NET = (F × 3) − build cost − (running × 3) = $<span class="pw-formula-blank"></span>
+                </div>
+            </div>
+
+            <div class="pw-section">
+                <div class="pw-section-title">Step 4: What Your Result Means</div>
+                <table class="pw-rate-table">
+                    <tr><th>Your Payback</th><th>Verdict</th></tr>
+                    <tr><td>≤ 6 months</td><td>The math is clearly in your favor.</td></tr>
+                    <tr><td>6–12 months</td><td>It pays for itself within year one.</td></tr>
+                    <tr><td>12–18 months</td><td>A longer-horizon play - go in knowing the horizon.</td></tr>
+                    <tr><td>&gt; 18 months, or under ~100 visitors/mo</td><td>A custom build isn't the priority yet - grow traffic or economics first.</td></tr>
+                </table>
+                <div class="pw-pro-ref">
+                    <strong>A conversion-engineered custom website typically pays for itself with one recovered client</strong> - when traffic and client value can support it. This report tells you which camp you're in. Re-run it whenever your numbers change.
+                </div>
+            </div>
+
+            <div class="pw-footer">
+                Interactive version: trogdyne-resources.netlify.app/website-roi-calculator | © 2026 Trogdyne | contact@trogdyne.com
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const visitorsInput = document.getElementById('visitors');
+            const convInput = document.getElementById('currentConv');
+            const closeRateInput = document.getElementById('closeRate');
+            const valueActualRadio = document.getElementById('valueActual');
+            const valueEstimateRadio = document.getElementById('valueEstimate');
+            const actualValueGroup = document.getElementById('actualValueGroup');
+            const estimateValueGroup = document.getElementById('estimateValueGroup');
+            const actualValueInput = document.getElementById('actualValue');
+            const industrySelect = document.getElementById('industrySelect');
+            const buildCostInput = document.getElementById('buildCost');
+            const runningCostInput = document.getElementById('runningCost');
+            const resultsSection = document.getElementById('resultsSection');
+            const noticeEl = document.getElementById('inputNotice');
+            const ctaSection = document.getElementById('ctaSection');
+
+            const BASELINE_CAP = 8;
+            const TRAFFIC_FLOOR = 100;
+            const QUIZ_URL = 'https://trogdyne.com/qualification/';
+            const CONTACT_EMAIL = 'contact@trogdyne.com';
+
+            const VERDICT_TITLES = {
+                s1: 'The Math Is Clearly in Your Favor',
+                s2: 'It Pays for Itself Within Year One',
+                s3: 'A Longer-Horizon Play',
+                s4: 'A Custom Build Isn\u2019t the Priority - Yet',
+                traffic: 'The Engine Needs Traffic',
+                noreturn: 'A Custom Build Isn\u2019t the Priority - Yet'
+            };
+
+            const PRINT_IDS = ['pVisitors', 'pConv', 'pCloseRate', 'pClientValue', 'pBuildCost',
+                'pRunningCost', 'pScenario', 'pClientsNowProj', 'pAddedClients', 'pAddedRevenue',
+                'pBreakEven', 'pPayback', 'pThreeYearNet', 'pVerdict'];
+
+            function updateValueMethod() {
+                if (valueActualRadio.checked) {
+                    actualValueGroup.classList.add('active');
+                    estimateValueGroup.classList.remove('active');
+                } else {
+                    actualValueGroup.classList.remove('active');
+                    estimateValueGroup.classList.add('active');
+                }
+                calculate();
+            }
+            valueActualRadio.addEventListener('change', updateValueMethod);
+            valueEstimateRadio.addEventListener('change', updateValueMethod);
+
+            function getClientValue() {
+                if (valueActualRadio.checked) return parseFloat(actualValueInput.value) || 0;
+                return parseFloat(industrySelect.value) || 2500;
+            }
+
+            function getScenario() {
+                const checked = document.querySelector('input[name="scenario"]:checked');
+                const names = { '1.5': 'Conservative', '2': 'Moderate', '3': 'Ambitious' };
+                return { mult: parseFloat(checked.value), name: names[checked.value] };
+            }
+
+            function formatCurrency(amount) {
+                return '$' + Math.round(amount).toLocaleString('en-US');
+            }
+
+            function formatClients(n) {
+                if (n >= 10) return Math.round(n).toString();
+                return (Math.round(n * 10) / 10).toString();
+            }
+
+            function formatPayback(months) {
+                if (!isFinite(months) || months <= 0) return '-';
+                if (months < 1) return 'under 1 month';
+                if (months < 18) return '~' + Math.round(months) + ' months';
+                return '~' + (Math.round((months / 12) * 10) / 10) + ' years';
+            }
+
+            function fmtPct(n) {
+                return (n % 1 === 0 ? n.toString() : n.toFixed(1)) + '%';
+            }
+
+            function updateScenarioPreviews() {
+                const conv = parseFloat(convInput.value) || 0;
+                document.querySelectorAll('.scenario-option label').forEach(lbl => {
+                    const m = parseFloat(lbl.dataset.mult);
+                    const prev = lbl.querySelector('.scenario-preview');
+                    if (conv > 0) {
+                        const proj = Math.min(conv * m, BASELINE_CAP);
+                        prev.textContent = 'Your ' + fmtPct(conv) + ' → ' + fmtPct(proj);
+                    } else {
+                        prev.textContent = 'Enter your conversion to preview';
+                    }
+                });
+            }
+
+            /* ---------- PRINT SNAPSHOT (personalized report) ---------- */
+            function fillPrintSnapshot(vals) {
+                PRINT_IDS.forEach((id, i) => {
+                    document.getElementById(id).textContent = vals ? vals[i] : '-';
+                });
+            }
+
+            /* ---------- MAILTO (second opinion, pre-filled) ---------- */
+            function buildMailto(d) {
+                const body =
+                    'Hi Naoman,\n\n' +
+                    'I ran the Website ROI Calculator and would like a second opinion. Here are my numbers:\n\n' +
+                    'INPUTS\n' +
+                    'Monthly visitors: ' + d.visitors + '\n' +
+                    'Current conversion: ' + fmtPct(d.conv) + '\n' +
+                    'Close rate: ' + fmtPct(d.closeRate * 100) + '\n' +
+                    'Client value: ' + formatCurrency(d.clientValue) + '\n' +
+                    'Build cost: ' + formatCurrency(d.buildCost) + '\n' +
+                    'Running cost: ' + formatCurrency(d.runningCost) + '/yr\n' +
+                    'Scenario: ' + d.scenarioName + ' x' + d.mult + ' (projected ' + fmtPct(d.projConv) + ')\n\n' +
+                    'RESULTS\n' +
+                    'Added clients/yr: ' + formatClients(Math.max(0, d.addedClients)) + '\n' +
+                    'Added revenue/yr: ' + formatCurrency(d.addedRevenue) + '\n' +
+                    'Payback: ' + formatPayback(d.payback) + '\n' +
+                    'Verdict: ' + VERDICT_TITLES[d.verdict] + '\n';
+                return 'mailto:' + CONTACT_EMAIL +
+                    '?subject=' + encodeURIComponent('Second opinion: my Website ROI Calculator numbers') +
+                    '&body=' + encodeURIComponent(body);
+            }
+
+            /* ---------- VERDICT RENDERING ---------- */
+            function renderVerdict(verdict, d) {
+                const caveat = (d.addedClients > 0 && d.addedClients < 3)
+                    ? '<p class="verdict-caveat">One caveat: at your traffic, this works out to ~' + d.addedClients.toFixed(1) + ' extra clients per year - real, but a modest swing. Treat the estimate accordingly.</p>'
+                    : '';
+                let html = '';
+
+                if (verdict === 'traffic' || verdict === 's4' || verdict === 'noreturn') {
+                    let lead, title;
+                    if (verdict === 'traffic') {
+                        title = 'The Engine Needs Traffic';
+                        lead = 'With under ~100 visitors a month, even a world-class form produces only a handful of inquiries. The priority isn\u2019t a rebuild - it\u2019s traffic. A custom website multiplies the visitors you already have; it can\u2019t create them.';
+                    } else if (verdict === 'noreturn') {
+                        title = 'A Custom Build Isn\u2019t the Priority - Yet';
+                        lead = 'On these assumptions the rebuild adds no revenue - usually because the conversion rate you entered is already at the realistic ceiling (the 8% cap), leaving no headroom for uplift. The lever now is traffic or offer, not the form.';
+                    } else {
+                        title = 'A Custom Build Isn\u2019t the Priority - Yet';
+                        lead = 'On these numbers, a custom website doesn\u2019t pay for itself within 18 months (our estimate: ' + d.paybackText + '). That\u2019s usually a sequencing issue: traffic is modest, client value is on the low side, or the build cost is high relative to your market.';
+                    }
+                    html = '<div class="verdict-box hold">' +
+                        '<strong class="verdict-title">' + title + '</strong>' +
+                        '<p>' + lead + '</p>' +
+                        '<p class="sub-label">What to do first instead:</p>' +
+                        '<ul>' +
+                        '<li><strong>Grow traffic.</strong> Pinterest, SEO, referrals - get consistent visitors before optimizing conversion.</li>' +
+                        '<li><strong>Apply the free fixes.</strong> Trim fields, visible labels, single column, value-statement button - most forms have 20\u201330% of headroom at zero cost.</li>' +
+                        '<li><strong>Re-run this math</strong> once traffic or client value grows.</li>' +
+                        '</ul>' +
+                        caveat +
+                        '<p class="verdict-close">No pitch here - the math says wait. If you think we got the numbers wrong, <a href="' + d.mailHref + '">send me your numbers for a second opinion</a>. - Naoman</p>' +
+                        '</div>';
+                } else if (verdict === 's3') {
+                    html = '<div class="verdict-box honest">' +
+                        '<strong class="verdict-title">A Longer-Horizon Play</strong>' +
+                        '<p>The math works, but slowly: <strong>' + d.paybackText + '</strong> to break even, and a 3-year net of <strong>' + d.netText + '</strong>. That usually means traffic is modest, client value is low, or the build cost is high for your market.</p>' +
+                        '<p>It\u2019s still a rational investment if you plan to hold the site for 3+ years - just go in knowing the horizon.</p>' +
+                        caveat +
+                        '<p class="verdict-cta">Want a second opinion on the numbers? <a href="' + QUIZ_URL + '" target="_blank">Take the 2-Minute Readiness Quiz &rarr;</a></p>' +
+                        '</div>';
+                } else if (verdict === 's2') {
+                    html = '<div class="verdict-box yes">' +
+                        '<strong class="verdict-title">It Pays for Itself Within Year One</strong>' +
+                        '<p>On the ' + d.scenarioName + ' scenario you chose, the investment recovers in <strong>' + d.paybackText + '</strong>. Year one is the payback year; years two and three are the return years - <strong>' + d.netText + '</strong> net over three years.</p>' +
+                        caveat +
+                        '<p class="verdict-cta">The remaining question is who builds it so it actually converts: <a href="' + QUIZ_URL + '" target="_blank">Take the 2-Minute Readiness Quiz &rarr;</a></p>' +
+                        '</div>';
+                } else {
+                    html = '<div class="verdict-box strong">' +
+                        '<strong class="verdict-title">The Math Is Clearly in Your Favor</strong>' +
+                        '<p>Even on the ' + d.scenarioName + ' scenario you chose, the rebuild pays for itself in <strong>' + d.paybackText + '</strong> and projects <strong>' + d.addedRevText + '/year</strong> in added revenue. Break-even is ~' + d.beText + ' clients - a bar most service businesses clear within weeks.</p>' +
+                        '<p>The question isn\u2019t <em>whether</em> it pays back. It\u2019s <em>who builds it</em> so it actually converts.</p>' +
+                        caveat +
+                        '<p class="verdict-cta"><a href="' + QUIZ_URL + '" target="_blank">See if we\u2019re the right fit - take the 2-Minute Readiness Quiz &rarr;</a></p>' +
+                        '</div>';
+                }
+                document.getElementById('verdictBox').innerHTML = html;
+            }
+
+            /* ---------- CTA RENDERING (no duplicate soft CTA) ---------- */
+            function renderCTA(verdict) {
+                if (verdict === 's1' || verdict === 's2') {
+                    ctaSection.innerHTML = '<h3>Ready to Build the Engine?</h3>' +
+                        '<p>You\u2019ve seen the math - the remaining question is who builds it so it actually converts. Take the 2-Minute Readiness Quiz and let\u2019s find out if we\u2019re the right fit for each other.</p>' +
+                        '<a href="' + QUIZ_URL + '" class="cta-button" target="_blank">Take the 2-Minute Readiness Quiz &rarr;</a>';
+                } else if (verdict === 's3') {
+                    ctaSection.innerHTML = '<h3>Worth a Second Opinion?</h3>' +
+                        '<p>Longer-horizon investments deserve a second pair of eyes. Take the 2-Minute Readiness Quiz and we\u2019ll tell you plainly whether a build makes sense for you now.</p>' +
+                        '<a href="' + QUIZ_URL + '" class="cta-button" target="_blank">Take the 2-Minute Readiness Quiz &rarr;</a>';
+                } else {
+                    ctaSection.innerHTML = '<h3>The Door Stays Open</h3>' +
+                        '<p>This tool gave you the straight answer today - that\u2019s what it\u2019s for. When your numbers change, re-run it. And if you ever want a second opinion, you know where to find us.</p>' +
+                        '<p class="cta-quiet">contact@trogdyne.com · trogdyne.com</p>';
+                }
+            }
+
+            /* ---------- MAIN CALCULATION ---------- */
+            function calculate() {
+                const visitors = parseFloat(visitorsInput.value) || 0;
+                const conv = parseFloat(convInput.value) || 0;
+                const closeRate = (parseFloat(closeRateInput.value) || 25) / 100;
+                const clientValue = getClientValue();
+                const buildCost = parseFloat(buildCostInput.value) || 0;
+                const runningCost = parseFloat(runningCostInput.value) || 0;
+                const scenario = getScenario();
+
+                updateScenarioPreviews();
+
+                // Graceful fallbacks for zero/missing inputs
+                let noticeMsg = '';
+                if (visitors <= 0) noticeMsg = 'With 0 monthly visitors, a website rebuild won\u2019t generate new clients \u2014 there\u2019s no traffic to convert. Focus on traffic generation first, then re-run this math.';
+                else if (conv <= 0) noticeMsg = 'Enter your current inquiry conversion rate \u2014 if unknown, 2\u20135% is a healthy working band.';
+                else if (clientValue <= 0) noticeMsg = 'Enter the value of one new client, or pick an industry estimate, to see the break-even math.';
+                else if (buildCost <= 0) noticeMsg = 'Enter the build cost you\u2019re considering \u2014 the break-even math needs an investment to work against.';
+
+                if (noticeMsg) {
+                    noticeEl.textContent = noticeMsg;
+                    noticeEl.style.display = 'block';
+                    resultsSection.classList.remove('visible');
+                    fillPrintSnapshot(null);
+                    renderCTA('hold');
+                    return;
+                }
+                noticeEl.style.display = 'none';
+                resultsSection.classList.add('visible');
+
+                const projConv = Math.min(conv * scenario.mult, BASELINE_CAP);
+                const currentInq = visitors * (conv / 100);
+                const projInq = visitors * (projConv / 100);
+                const currentClients = currentInq * 12 * closeRate;
+                const projClients = projInq * 12 * closeRate;
+                const addedClients = projClients - currentClients;
+                const addedRevenue = addedClients * clientValue;
+                const breakEvenClients = buildCost / clientValue;
+                const monthlyAdded = addedRevenue / 12;
+                const payback = monthlyAdded > 0 ? buildCost / monthlyAdded : Infinity;
+                const threeYearRevenue = addedRevenue * 3;
+                const totalInvest = buildCost + runningCost * 3;
+                const threeYearNet = threeYearRevenue - totalInvest;
+                const roiMultiple = totalInvest > 0 ? threeYearNet / totalInvest : 0;
+
+                /* Screen outputs */
+                document.getElementById('sqClients').textContent = formatClients(currentClients);
+                document.getElementById('sqRevenue').textContent = formatCurrency(currentClients * clientValue) + ' / yr revenue';
+                document.getElementById('upClients').textContent = formatClients(projClients);
+                document.getElementById('upRevenue').textContent = formatCurrency(projClients * clientValue) + ' / yr revenue';
+                document.getElementById('upInvest').textContent = 'Investment: ' + formatCurrency(buildCost) + ' build + ' + formatCurrency(runningCost) + '/yr running';
+
+                document.getElementById('addedRevenueEl').textContent = '≈ ' + formatCurrency(addedRevenue) + ' / yr';
+                document.getElementById('paybackChip').textContent = (isFinite(payback) && payback > 0)
+                    ? 'pays for itself in ' + formatPayback(payback)
+                    : 'no payback on these assumptions';
+
+                document.getElementById('beClients').textContent = Math.max(1, Math.ceil(breakEvenClients));
+                document.getElementById('addedClientsEl').textContent = formatClients(Math.max(0, addedClients));
+
+                const pct = projClients > 0 ? Math.max(4, (currentClients / projClients) * 100) : 0;
+                document.getElementById('barCurrent').style.width = pct + '%';
+                document.getElementById('barProjected').style.width = projClients > 0 ? '100%' : '0%';
+                document.getElementById('barCurrentValue').textContent = formatClients(currentClients) + ' clients/yr';
+                document.getElementById('barProjectedValue').textContent = formatClients(projClients) + ' clients/yr';
+
+                document.getElementById('tyRevenue').textContent = formatCurrency(threeYearRevenue);
+                document.getElementById('tyInvest').textContent = formatCurrency(totalInvest);
+                document.getElementById('tyNet').textContent = (threeYearNet < 0 ? '−' : '') + formatCurrency(Math.abs(threeYearNet));
+                document.getElementById('tyMultiple').textContent = threeYearNet <= 0
+                    ? 'no positive return over 3 years'
+                    : '≈ ' + (roiMultiple >= 10 ? Math.round(roiMultiple) : roiMultiple.toFixed(1)) + '× the investment';
+
+                /* Verdict */
+                let verdict;
+                if (visitors < TRAFFIC_FLOOR) verdict = 'traffic';
+                else if (addedRevenue <= 0) verdict = 'noreturn';
+                else if (payback <= 6) verdict = 's1';
+                else if (payback <= 12) verdict = 's2';
+                else if (payback <= 18) verdict = 's3';
+                else verdict = 's4';
+
+                const shared = {
+                    visitors: visitors, conv: conv, closeRate: closeRate, clientValue: clientValue,
+                    buildCost: buildCost, runningCost: runningCost, projConv: projConv,
+                    mult: scenario.mult, scenarioName: scenario.name,
+                    addedClients: addedClients, addedRevenue: addedRevenue, payback: payback, verdict: verdict
+                };
+
+                renderVerdict(verdict, {
+                    paybackText: formatPayback(payback),
+                    addedRevText: formatCurrency(addedRevenue),
+                    beText: Math.max(1, Math.ceil(breakEvenClients)),
+                    netText: (threeYearNet < 0 ? '−' : '') + formatCurrency(Math.abs(threeYearNet)),
+                    scenarioName: scenario.name,
+                    addedClients: addedClients,
+                    mailHref: buildMailto(shared)
+                });
+                renderCTA(verdict);
+
+                /* Print snapshot - always current when the user prints */
+                fillPrintSnapshot([
+                    visitors.toLocaleString('en-US'),
+                    fmtPct(conv),
+                    fmtPct(closeRate * 100),
+                    formatCurrency(clientValue),
+                    formatCurrency(buildCost),
+                    formatCurrency(runningCost) + ' / yr',
+                    scenario.name + ' ×' + scenario.mult + ' (projected ' + fmtPct(projConv) + ')',
+                    formatClients(currentClients) + ' → ' + formatClients(projClients),
+                    formatClients(Math.max(0, addedClients)),
+                    formatCurrency(addedRevenue) + ' / yr',
+                    '~' + Math.max(1, Math.ceil(breakEvenClients)) + ' clients',
+                    formatPayback(payback),
+                    (threeYearNet < 0 ? '−' : '') + formatCurrency(Math.abs(threeYearNet)),
+                    VERDICT_TITLES[verdict]
+                ]);
+            }
+
+            visitorsInput.addEventListener('input', calculate);
+            convInput.addEventListener('input', calculate);
+            closeRateInput.addEventListener('input', calculate);
+            actualValueInput.addEventListener('input', calculate);
+            industrySelect.addEventListener('change', calculate);
+            buildCostInput.addEventListener('input', calculate);
+            runningCostInput.addEventListener('input', calculate);
+            document.querySelectorAll('input[name="scenario"]').forEach(r => r.addEventListener('change', calculate));
+            updateValueMethod();
+        });
+    </script>
+</body>
+</html>
