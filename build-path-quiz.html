@@ -42,7 +42,7 @@
         .score-tracker { background: #f0f4f1; border: 1px solid #d9e2dc; border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 2rem; text-align: center; font-family: var(--font-heading); font-size: 1.1rem; font-weight: 600; }
         .score-tracker strong { color: var(--color-primary); font-size: 1.3rem; }
 
-        /* Questions (A11y Fieldsets) */
+        /* Questions */
         .questions-section { margin-bottom: 2rem; }
         .question { 
             background: var(--color-bg); 
@@ -50,8 +50,6 @@
             border-radius: var(--radius-lg); 
             padding: 1.5rem; 
             margin-bottom: 1.25rem;
-            display: block;
-            border: 1px solid var(--color-border);
         }
         .question legend { 
             font-family: var(--font-heading); 
@@ -61,8 +59,9 @@
             line-height: 1.4; 
             padding: 0;
             width: 100%;
+            float: left;
         }
-        .options { display: flex; flex-direction: column; gap: 0.75rem; }
+        .options { display: flex; flex-direction: column; gap: 0.75rem; clear: both; }
         .option { position: relative; }
         .option input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
         .option label { 
@@ -134,43 +133,31 @@
             .email-form button { width: 100%; }
         }
 
-        /* =========================================================
-           PRINT STYLES (Offline Worksheet)
-           ========================================================= */
+        /* Print styles */
         @media print {
             @page { size: A4; margin: 1.5cm; }
             body { background: white; padding: 0; font-size: 11pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .tool-container { box-shadow: none; padding: 0; max-width: 100%; border-radius: 0; }
-            
-            /* Hide interactive web UI */
-            .print-btn, .submit-section, .questions-section, .score-tracker, .result-screen, .instructions, .tool-footer { display: none !important; }
-            
-            /* Show print worksheet */
+            .print-btn, .submit-section, .questions-section, .score-tracker, .result-screen, .instructions, .tool-header, .tool-footer { display: none !important; }
             .print-worksheet { display: block !important; }
 
             .pw-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #5f7c6b; }
             .pw-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 22pt; color: #5f7c6b; margin-bottom: 0.25rem; }
             .pw-header p { font-size: 10pt; color: #57534e; }
-            
             .pw-section { margin-bottom: 1.25rem; page-break-inside: avoid; }
             .pw-section-title { font-family: 'Space Grotesk', sans-serif; font-size: 13pt; font-weight: 700; color: #5f7c6b; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #e7e5e4; }
-            
             .pw-question { margin-bottom: 1rem; font-size: 10pt; }
             .pw-q-text { font-weight: 700; margin-bottom: 0.25rem; }
             .pw-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 1rem; font-size: 9.5pt; color: #333; }
             .pw-opt { display: flex; align-items: center; gap: 0.4rem; }
             .pw-checkbox { width: 12px; height: 12px; border: 1.5px solid #1c1917; border-radius: 2px; display: inline-block; flex-shrink: 0; }
             .pw-points { color: #78716C; font-style: italic; font-size: 8.5pt; margin-left: auto; }
-
             .pw-gate-note { background: #f7f3ec; padding: 0.75rem; border-left: 3px solid #c9a882; font-size: 9.5pt; margin: 1rem 0; }
             .pw-gate-note strong { color: #a8835c; }
-
             .pw-scoring { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1rem; font-size: 10pt; }
             .pw-score-box { border: 1px solid #e7e5e4; padding: 0.75rem; border-radius: 4px; text-align: center; }
             .pw-score-box strong { display: block; font-family: 'Space Grotesk', sans-serif; color: #5f7c6b; font-size: 11pt; margin-bottom: 0.25rem; }
-
             .pw-blank-line { border-bottom: 1px solid #1c1917; display: inline-block; min-width: 150px; height: 1.2em; vertical-align: bottom; }
-            
             .pw-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid #e7e5e4; font-size: 8pt; color: #78716C; text-align: center; }
         }
     </style>
@@ -189,7 +176,7 @@
         </div>
 
         <div class="instructions">
-            <p><strong>How this works:</strong> Answer 8 questions about your current situation. Based on your answers, we'll show you which build path fits you right now; whether that's a custom build, optimizing what you have, or waiting until your foundation is ready.</p>
+            <p><strong>How this works:</strong> Answer 8 questions about your current situation. Based on your answers, we'll show you which build path fits you right now - whether that's a custom build, optimizing what you have, or waiting until your foundation is ready.</p>
         </div>
 
         <div class="score-tracker">
@@ -199,12 +186,12 @@
         <!-- QUESTIONS -->
         <form id="quizForm">
             <div class="questions-section" id="questionsSection">
-                <!-- Q1: Traffic (gate question) -->
+                <!-- Q1: Traffic -->
                 <fieldset class="question">
                     <legend>1. How much traffic does your website currently get?</legend>
                     <div class="options">
                         <div class="option">
-                            <input type="radio" name="q1" id="q1a" value="0" data-gate="true">
+                            <input type="radio" name="q1" id="q1a" value="0">
                             <label for="q1a">Under 100 visitors/month (or I don't have a site yet)</label>
                         </div>
                         <div class="option">
@@ -268,25 +255,25 @@
                     </div>
                 </fieldset>
 
-                <!-- Q4: Time -->
+                <!-- Q4: Relationship to website work (REFRAMED) -->
                 <fieldset class="question">
-                    <legend>4. How much time can you personally invest in building/maintaining your site?</legend>
+                    <legend>4. What's your relationship to website work?</legend>
                     <div class="options">
                         <div class="option">
                             <input type="radio" name="q4" id="q4a" value="0">
-                            <label for="q4a">Lots of time - I enjoy tinkering with it myself</label>
+                            <label for="q4a">I want to build and maintain the whole thing myself</label>
                         </div>
                         <div class="option">
                             <input type="radio" name="q4" id="q4b" value="1">
-                            <label for="q4b">Some time, but I'd rather focus on my business</label>
+                            <label for="q4b">I want to be hands-on and collaborate closely on it</label>
                         </div>
                         <div class="option">
                             <input type="radio" name="q4" id="q4c" value="2">
-                            <label for="q4c">Limited time - my business keeps me busy</label>
+                            <label for="q4c">I'd like to delegate most of it but stay in the loop</label>
                         </div>
                         <div class="option">
                             <input type="radio" name="q4" id="q4d" value="3">
-                            <label for="q4d">No time - I need this handled for me</label>
+                            <label for="q4d">I want it fully handled for me so I can focus on my business</label>
                         </div>
                     </div>
                 </fieldset>
@@ -393,10 +380,10 @@
         <div class="result-screen" id="outcomeA">
             <div class="result-badge">Your Build Path: Custom</div>
             <h2 class="result-title">You're Ready for a Custom Build</h2>
-            <p class="result-body">Your answers point one direction: you have the traffic, the revenue, and the clear offer to make a custom website pay for itself; and needs that a mere template can't keep up with.</p>
+            <p class="result-body">Your answers point one direction: you have the traffic, the revenue, and the clear offer to make a custom website pay for itself - and needs a template can't keep up with.</p>
             <p class="result-body"><strong>Why custom is your path:</strong></p>
             <ul class="result-list">
-                <li><span class="dot">●</span>You have traffic to convert. You're not starting from zero.</li>
+                <li><span class="dot">●</span>You have traffic to convert - you're not starting from zero.</li>
                 <li><span class="dot">●</span>Your revenue justifies the investment.</li>
                 <li><span class="dot">●</span>You need booking, integrations, or features a template can't handle.</li>
                 <li><span class="dot">●</span>Your time is better spent running your business than wrestling a builder.</li>
@@ -410,7 +397,7 @@
         <div class="result-screen" id="outcomeB">
             <div class="result-badge">Your Build Path: Optimize First</div>
             <h2 class="result-title">Get More From What You Already Have</h2>
-            <p class="result-body">You have the start of a real web presence; but a full custom build wouldn't pay for itself just yet. The smarter move right now is to make what you have work harder.</p>
+            <p class="result-body">You have the start of a real web presence - but a full custom build wouldn't pay for itself just yet. The smarter move right now is to make what you have work harder.</p>
             <p class="result-body"><strong>Why optimize first:</strong></p>
             <ul class="result-list">
                 <li><span class="dot">●</span>You have a foundation to build on.</li>
@@ -426,11 +413,11 @@
         <div class="result-screen outcome-c" id="outcomeC">
             <div class="result-badge">Your Build Path: Build the Foundation</div>
             <h2 class="result-title">A Website Isn't Your Priority Yet - And That's Fine</h2>
-            <p class="result-body">Right now, a website investment would spend money on the wrong problem. Your bottleneck isn't your web presence — it's the foundation underneath: an offer you're still validating and an audience you're still building.</p>
+            <p class="result-body">Right now, a website investment would spend money on the wrong problem. Your bottleneck isn't your web presence - it's the foundation underneath: an offer you're still validating and an audience you're still building.</p>
             <p class="result-body">That's not a setback. It's a stage. And a site with no traffic to convert won't move you forward, no matter how good it looks.</p>
             <p class="result-body"><strong>Why waiting is the smart move:</strong></p>
             <ul class="result-list">
-                <li><span class="dot">●</span>A website converts the traffic you already have. with no traffic, there's nothing to convert.</li>
+                <li><span class="dot">●</span>A website converts the traffic you already have - with no traffic, there's nothing to convert.</li>
                 <li><span class="dot">●</span>Validating your offer first means your eventual site has something proven to sell.</li>
                 <li><span class="dot">●</span>Your time and money go further getting in front of people right now.</li>
             </ul>
@@ -454,9 +441,7 @@
             © 2026 Trogdyne. All rights reserved. | contact@trogdyne.com | trogdyne.com
         </div>
 
-        <!-- =========================================================
-             PRINT WORKSHEET (Offline Hand-Fillable Version)
-             ========================================================= -->
+        <!-- PRINT WORKSHEET -->
         <div class="print-worksheet">
             <div class="pw-header">
                 <h1>Build Path Quiz</h1>
@@ -502,12 +487,12 @@
                 </div>
 
                 <div class="pw-question">
-                    <div class="pw-q-text">4. How much time can you invest in building/maintaining it?</div>
+                    <div class="pw-q-text">4. What's your relationship to website work?</div>
                     <div class="pw-options">
-                        <div class="pw-opt"><span class="pw-checkbox"></span> Lots (I enjoy tinkering) <span class="pw-points">(0 pts)</span></div>
-                        <div class="pw-opt"><span class="pw-checkbox"></span> Some (prefer focusing on biz) <span class="pw-points">(1 pt)</span></div>
-                        <div class="pw-opt"><span class="pw-checkbox"></span> Limited (biz keeps me busy) <span class="pw-points">(2 pts)</span></div>
-                        <div class="pw-opt"><span class="pw-checkbox"></span> None (need it handled) <span class="pw-points">(3 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Build & maintain it all myself <span class="pw-points">(0 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Hands-on, collaborate closely <span class="pw-points">(1 pt)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Delegate most, stay in the loop <span class="pw-points">(2 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Fully handled for me <span class="pw-points">(3 pts)</span></div>
                     </div>
                 </div>
 
@@ -557,17 +542,16 @@
                 <p style="font-size: 11pt; margin-bottom: 1rem;">My Total Score: <span class="pw-blank-line"></span> / 24</p>
                 
                 <div class="pw-gate-note">
-                    <strong>Traffic Gate Rule:</strong> If you scored 0 points on Question 1 (Under 100 visitors/mo), your result is automatically capped at Path B (Optimize First), regardless of your total score. A custom build requires traffic to convert.
+                    <strong>Early-Stage Gate Rule:</strong> If you scored 0 points on Question 1 (Under 100 visitors/mo) AND scored 0 or 1 point on Question 2 (low/no revenue) AND scored 0 or 1 point on Question 3 (budget under $1,500), your result is capped at Path B (Optimize First). However, if you have steady revenue, established revenue, or a budget of $1,500+, the gate does not apply - you may still qualify for Path A.
                 </div>
 
                 <div class="pw-scoring">
                     <div class="pw-score-box">
-                        <strong>18–24 Points</strong>
-                        Path A: Custom Build<br>
-                        <span style="font-size: 8.5pt; color: #57534e;">(Assuming Q1 > 0)</span>
+                        <strong>16–24 Points</strong>
+                        Path A: Custom Build
                     </div>
                     <div class="pw-score-box">
-                        <strong>10–17 Points</strong>
+                        <strong>10–15 Points</strong>
                         Path B: Optimize First
                     </div>
                     <div class="pw-score-box">
@@ -602,7 +586,6 @@
             const outcomeC = document.getElementById('outcomeC');
             const emailForm = document.getElementById('emailForm');
             const emailSuccess = document.getElementById('emailSuccess');
-            const quizForm = document.getElementById('quizForm');
 
             const allRadios = document.querySelectorAll('input[type="radio"]');
             const totalQuestions = 8;
@@ -628,19 +611,25 @@
 
             submitBtn.addEventListener('click', function() {
                 const { score } = calculateScore();
-                const q1Selected = document.querySelector('input[name="q1"]:checked');
-                const trafficGate = q1Selected && q1Selected.dataset.gate === 'true';
+                
+                // Compound early-stage gate: low traffic AND low revenue AND low budget
+                const q1Val = parseInt(document.querySelector('input[name="q1"]:checked')?.value ?? -1);
+                const q2Val = parseInt(document.querySelector('input[name="q2"]:checked')?.value ?? -1);
+                const q3Val = parseInt(document.querySelector('input[name="q3"]:checked')?.value ?? -1);
+                
+                const lowTraffic = q1Val === 0;
+                const lowRevenue = q2Val === 0 || q2Val === 1;
+                const lowBudget = q3Val === 0 || q3Val === 1;
+                const earlyStageGate = lowTraffic && lowRevenue && lowBudget;
 
                 // Determine outcome
                 let outcome;
-                if (trafficGate) {
-                    outcome = 'B'; // Traffic gate caps at B
-                } else if (score >= 18) {
-                    outcome = 'A';
+                if (score >= 16) {
+                    outcome = earlyStageGate ? 'B' : 'A'; // gate only caps A → B
                 } else if (score >= 10) {
                     outcome = 'B';
                 } else {
-                    outcome = 'C';
+                    outcome = 'C'; // low score stays C, gate irrelevant
                 }
 
                 // Hide questions, show result
@@ -677,7 +666,6 @@
             document.getElementById('outcomeB').classList.remove('visible');
             document.getElementById('outcomeC').classList.remove('visible');
             
-            // Reset email form if it was hidden
             const emailForm = document.getElementById('emailForm');
             if(emailForm) {
                 emailForm.style.display = 'flex';
