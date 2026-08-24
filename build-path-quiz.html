@@ -42,22 +42,51 @@
         .score-tracker { background: #f0f4f1; border: 1px solid #d9e2dc; border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 2rem; text-align: center; font-family: var(--font-heading); font-size: 1.1rem; font-weight: 600; }
         .score-tracker strong { color: var(--color-primary); font-size: 1.3rem; }
 
-        /* Questions */
+        /* Questions (A11y Fieldsets) */
         .questions-section { margin-bottom: 2rem; }
-        .question { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.25rem; }
-        .question-text { font-family: var(--font-heading); font-size: 1.15rem; font-weight: 600; margin-bottom: 1rem; line-height: 1.4; }
+        .question { 
+            background: var(--color-bg); 
+            border: 1px solid var(--color-border); 
+            border-radius: var(--radius-lg); 
+            padding: 1.5rem; 
+            margin-bottom: 1.25rem;
+            display: block;
+            border: 1px solid var(--color-border);
+        }
+        .question legend { 
+            font-family: var(--font-heading); 
+            font-size: 1.15rem; 
+            font-weight: 600; 
+            margin-bottom: 1rem; 
+            line-height: 1.4; 
+            padding: 0;
+            width: 100%;
+        }
         .options { display: flex; flex-direction: column; gap: 0.75rem; }
         .option { position: relative; }
         .option input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
-        .option label { display: block; padding: 0.9rem 1.1rem; border: 2px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; font-size: 0.95rem; line-height: 1.5; transition: all 0.2s ease; background: white; }
+        .option label { 
+            display: block; 
+            padding: 0.9rem 1.1rem; 
+            border: 2px solid var(--color-border); 
+            border-radius: var(--radius-md); 
+            cursor: pointer; 
+            font-size: 0.95rem; 
+            line-height: 1.5; 
+            transition: all 0.2s ease; 
+            background: white; 
+        }
         .option label:hover { border-color: var(--color-primary); }
         .option input[type="radio"]:checked + label { border-color: var(--color-primary); background: #f0f4f1; color: var(--color-primary-hover); font-weight: 500; }
+        .option input[type="radio"]:focus-visible + label { outline: 3px solid var(--color-accent); outline-offset: 2px; }
 
-        /* Submit button */
+        /* Submit & Retake buttons */
         .submit-section { text-align: center; margin-top: 2rem; }
-        .submit-btn { display: inline-block; background: var(--color-primary); color: white; border: none; padding: 1.1rem 2.5rem; border-radius: var(--radius-full); font-family: var(--font-heading); font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: all 0.2s ease; }
-        .submit-btn:hover { background: var(--color-primary-hover); transform: translateY(-2px); }
+        .submit-btn, .retake-btn { display: inline-block; background: var(--color-primary); color: white; border: none; padding: 1.1rem 2.5rem; border-radius: var(--radius-full); font-family: var(--font-heading); font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: all 0.2s ease; }
+        .submit-btn:hover, .retake-btn:hover { background: var(--color-primary-hover); transform: translateY(-2px); }
         .submit-btn:disabled { background: #a8a29e; cursor: not-allowed; transform: none; }
+        .retake-btn { background: transparent; color: var(--color-primary); border: 2px solid var(--color-primary); padding: 0.8rem 2rem; font-size: 1rem; margin-top: 1.5rem; }
+        .retake-btn:hover { background: #f0f4f1; }
 
         /* Result screen */
         .result-screen { display: none; text-align: center; padding: 2rem 0; }
@@ -67,7 +96,7 @@
         .result-body { font-size: 1rem; color: var(--color-text-muted); line-height: 1.7; margin-bottom: 1.5rem; max-width: 700px; margin-left: auto; margin-right: auto; }
         .result-list { text-align: left; max-width: 600px; margin: 0 auto 1.5rem auto; list-style: none; }
         .result-list li { padding: 0.6rem 0; padding-left: 1.5rem; position: relative; font-size: 0.95rem; color: var(--color-text-muted); }
-        .result-list li::before { content: '●'; position: absolute; left: 0; color: var(--color-primary); font-weight: 700; }
+        .result-list li .dot { position: absolute; left: 0; color: var(--color-primary); font-weight: 700; }
 
         /* Outcome C specific */
         .result-screen.outcome-c .result-badge { background: #f7f3ec; color: #a8835c; }
@@ -80,10 +109,11 @@
         .email-capture { margin-top: 2rem; max-width: 450px; margin-left: auto; margin-right: auto; }
         .email-capture p { font-size: 0.95rem; color: var(--color-text-muted); margin-bottom: 0.75rem; }
         .email-form { display: flex; gap: 0.5rem; }
-        .email-form input[type="email"] { flex: 1; padding: 0.85rem 1rem; border: 2px solid var(--color-border); border-radius: var(--radius-md); font-size: 1rem; }
+        .email-form input[type="email"] { flex: 1; padding: 0.85rem 1rem; border: 2px solid var(--color-border); border-radius: var(--radius-md); font-size: 1rem; font-family: var(--font-body); }
         .email-form input[type="email"]:focus { outline: none; border-color: var(--color-primary); }
         .email-form button { background: var(--color-accent); color: var(--color-text); border: none; padding: 0.85rem 1.5rem; border-radius: var(--radius-md); font-family: var(--font-heading); font-weight: 600; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
         .email-form button:hover { background: var(--color-accent-hover); }
+        .email-success { display: none; background: #f0f4f1; border: 1px solid #d9e2dc; color: var(--color-primary-hover); padding: 1rem; border-radius: var(--radius-md); font-weight: 500; margin-top: 1rem; }
 
         /* CTA button */
         .cta-btn { display: inline-block; background: var(--color-primary); color: white; text-decoration: none; padding: 1rem 2rem; border-radius: var(--radius-full); font-family: var(--font-heading); font-weight: 600; font-size: 1.05rem; transition: all 0.2s ease; margin-top: 1rem; }
@@ -96,22 +126,59 @@
         .print-btn { position: fixed; bottom: 2rem; right: 2rem; background: var(--color-accent); color: var(--color-text); border: none; padding: 1rem 1.5rem; border-radius: var(--radius-full); font-family: var(--font-heading); font-weight: 600; cursor: pointer; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 0.5rem; z-index: 50; }
         .print-btn:hover { transform: translateY(-2px); background: var(--color-accent-hover); }
 
+        /* Hide print worksheet on screen */
+        .print-worksheet { display: none; }
+
         @media (max-width: 767px) {
             .email-form { flex-direction: column; }
             .email-form button { width: 100%; }
         }
 
+        /* =========================================================
+           PRINT STYLES (Offline Worksheet)
+           ========================================================= */
         @media print {
-            body { background: white; padding: 0; }
+            @page { size: A4; margin: 1.5cm; }
+            body { background: white; padding: 0; font-size: 11pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .tool-container { box-shadow: none; padding: 0; max-width: 100%; border-radius: 0; }
-            .print-btn, .submit-section { display: none; }
+            
+            /* Hide interactive web UI */
+            .print-btn, .submit-section, .questions-section, .score-tracker, .result-screen, .instructions, .tool-footer { display: none !important; }
+            
+            /* Show print worksheet */
+            .print-worksheet { display: block !important; }
+
+            .pw-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #5f7c6b; }
+            .pw-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 22pt; color: #5f7c6b; margin-bottom: 0.25rem; }
+            .pw-header p { font-size: 10pt; color: #57534e; }
+            
+            .pw-section { margin-bottom: 1.25rem; page-break-inside: avoid; }
+            .pw-section-title { font-family: 'Space Grotesk', sans-serif; font-size: 13pt; font-weight: 700; color: #5f7c6b; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #e7e5e4; }
+            
+            .pw-question { margin-bottom: 1rem; font-size: 10pt; }
+            .pw-q-text { font-weight: 700; margin-bottom: 0.25rem; }
+            .pw-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 1rem; font-size: 9.5pt; color: #333; }
+            .pw-opt { display: flex; align-items: center; gap: 0.4rem; }
+            .pw-checkbox { width: 12px; height: 12px; border: 1.5px solid #1c1917; border-radius: 2px; display: inline-block; flex-shrink: 0; }
+            .pw-points { color: #78716C; font-style: italic; font-size: 8.5pt; margin-left: auto; }
+
+            .pw-gate-note { background: #f7f3ec; padding: 0.75rem; border-left: 3px solid #c9a882; font-size: 9.5pt; margin: 1rem 0; }
+            .pw-gate-note strong { color: #a8835c; }
+
+            .pw-scoring { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1rem; font-size: 10pt; }
+            .pw-score-box { border: 1px solid #e7e5e4; padding: 0.75rem; border-radius: 4px; text-align: center; }
+            .pw-score-box strong { display: block; font-family: 'Space Grotesk', sans-serif; color: #5f7c6b; font-size: 11pt; margin-bottom: 0.25rem; }
+
+            .pw-blank-line { border-bottom: 1px solid #1c1917; display: inline-block; min-width: 150px; height: 1.2em; vertical-align: bottom; }
+            
+            .pw-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid #e7e5e4; font-size: 8pt; color: #78716C; text-align: center; }
         }
     </style>
 </head>
 <body>
     <button class="print-btn" onclick="window.print()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-        Save as PDF
+        Save as PDF / Print
     </button>
 
     <div class="tool-container">
@@ -122,7 +189,7 @@
         </div>
 
         <div class="instructions">
-            <p><strong>How this works:</strong> Answer 8 questions about your current situation. Based on your answers, we'll tell you which build path fits you right now; whether that's a custom build, optimizing what you have, or building the foundation first. This quiz can tell you "not yet," and it means it.</p>
+            <p><strong>How this works:</strong> Answer 8 questions about your current situation. Based on your answers, we'll show you which build path fits you right now; whether that's a custom build, optimizing what you have, or waiting until your foundation is ready.</p>
         </div>
 
         <div class="score-tracker">
@@ -130,236 +197,242 @@
         </div>
 
         <!-- QUESTIONS -->
-        <div class="questions-section" id="questionsSection">
-            <!-- Q1: Traffic (gate question) -->
-            <div class="question">
-                <div class="question-text">1. How much traffic does your website currently get?</div>
-                <div class="options">
-                    <div class="option">
-                        <input type="radio" name="q1" id="q1a" value="0" data-gate="true">
-                        <label for="q1a">Under 100 visitors/month (or I don't have a site yet)</label>
+        <form id="quizForm">
+            <div class="questions-section" id="questionsSection">
+                <!-- Q1: Traffic (gate question) -->
+                <fieldset class="question">
+                    <legend>1. How much traffic does your website currently get?</legend>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" name="q1" id="q1a" value="0" data-gate="true">
+                            <label for="q1a">Under 100 visitors/month (or I don't have a site yet)</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q1" id="q1b" value="1">
+                            <label for="q1b">100–500 visitors/month</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q1" id="q1c" value="2">
+                            <label for="q1c">500–2,000 visitors/month</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q1" id="q1d" value="3">
+                            <label for="q1d">2,000+ visitors/month</label>
+                        </div>
                     </div>
-                    <div class="option">
-                        <input type="radio" name="q1" id="q1b" value="1">
-                        <label for="q1b">100–500 visitors/month</label>
+                </fieldset>
+
+                <!-- Q2: Revenue -->
+                <fieldset class="question">
+                    <legend>2. Is your business generating revenue from clients?</legend>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" name="q2" id="q2a" value="0">
+                            <label for="q2a">Not yet / still an idea</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q2" id="q2b" value="1">
+                            <label for="q2b">Occasional / side income</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q2" id="q2c" value="2">
+                            <label for="q2c">Steady revenue, but I want to grow</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q2" id="q2d" value="3">
+                            <label for="q2d">Established revenue, actively scaling</label>
+                        </div>
                     </div>
-                    <div class="option">
-                        <input type="radio" name="q1" id="q1c" value="2">
-                        <label for="q1c">500–2,000 visitors/month</label>
+                </fieldset>
+
+                <!-- Q3: Budget -->
+                <fieldset class="question">
+                    <legend>3. What's your budget for a website right now?</legend>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" name="q3" id="q3a" value="0">
+                            <label for="q3a">Under $500</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q3" id="q3b" value="1">
+                            <label for="q3b">$500–$1,500</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q3" id="q3c" value="2">
+                            <label for="q3c">$1,500–$4,000</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q3" id="q3d" value="3">
+                            <label for="q3d">$4,000+</label>
+                        </div>
                     </div>
-                    <div class="option">
-                        <input type="radio" name="q1" id="q1d" value="3">
-                        <label for="q1d">2,000+ visitors/month</label>
+                </fieldset>
+
+                <!-- Q4: Time -->
+                <fieldset class="question">
+                    <legend>4. How much time can you personally invest in building/maintaining your site?</legend>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" name="q4" id="q4a" value="0">
+                            <label for="q4a">Lots of time - I enjoy tinkering with it myself</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q4" id="q4b" value="1">
+                            <label for="q4b">Some time, but I'd rather focus on my business</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q4" id="q4c" value="2">
+                            <label for="q4c">Limited time - my business keeps me busy</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q4" id="q4d" value="3">
+                            <label for="q4d">No time - I need this handled for me</label>
+                        </div>
                     </div>
-                </div>
+                </fieldset>
+
+                <!-- Q5: Importance -->
+                <fieldset class="question">
+                    <legend>5. How important is your website to winning clients?</legend>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" name="q5" id="q5a" value="0">
+                            <label for="q5a">It's just a placeholder / digital business card</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q5" id="q5b" value="1">
+                            <label for="q5b">It helps, but clients come mostly from referrals/social</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q5" id="q5c" value="2">
+                            <label for="q5c">It's a key part of my client acquisition</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q5" id="q5d" value="3">
+                            <label for="q5d">It's my primary channel for winning clients</label>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Q6: Functionality -->
+                <fieldset class="question">
+                    <legend>6. Do you need functionality beyond what a standard template offers?</legend>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" name="q6" id="q6a" value="0">
+                            <label for="q6a">No - a simple site is all I need</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q6" id="q6b" value="1">
+                            <label for="q6b">Maybe some basics (a blog, a contact form)</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q6" id="q6c" value="2">
+                            <label for="q6c">Yes - booking, client portals, or integrations</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q6" id="q6d" value="3">
+                            <label for="q6d">Yes - complex workflows, CRM integration, custom features</label>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Q7: Offer -->
+                <fieldset class="question">
+                    <legend>7. How established is your offer (what you sell)?</legend>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" name="q7" id="q7a" value="0">
+                            <label for="q7a">Still figuring it out / validating</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q7" id="q7b" value="1">
+                            <label for="q7b">I have an offer but it's still evolving</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q7" id="q7c" value="2">
+                            <label for="q7c">Clear offer, refining my positioning</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q7" id="q7d" value="3">
+                            <label for="q7d">Well-defined, proven offer</label>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Q8: Goal -->
+                <fieldset class="question">
+                    <legend>8. What's your primary goal for the website in the next 12 months?</legend>
+                    <div class="options">
+                        <div class="option">
+                            <input type="radio" name="q8" id="q8a" value="0">
+                            <label for="q8a">Just get something online / test the waters</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q8" id="q8b" value="1">
+                            <label for="q8b">Look more professional / credible</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q8" id="q8c" value="2">
+                            <label for="q8c">Generate more inquiries and bookings</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" name="q8" id="q8d" value="3">
+                            <label for="q8d">Become the go-to authority in my niche / scale</label>
+                        </div>
+                    </div>
+                </fieldset>
             </div>
 
-            <!-- Q2: Revenue -->
-            <div class="question">
-                <div class="question-text">2. Is your business generating revenue from clients?</div>
-                <div class="options">
-                    <div class="option">
-                        <input type="radio" name="q2" id="q2a" value="0">
-                        <label for="q2a">Not yet / still an idea</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q2" id="q2b" value="1">
-                        <label for="q2b">Occasional / side income</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q2" id="q2c" value="2">
-                        <label for="q2c">Steady revenue, but I want to grow</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q2" id="q2d" value="3">
-                        <label for="q2d">Established revenue, actively scaling</label>
-                    </div>
-                </div>
+            <div class="submit-section" id="submitSection">
+                <button type="button" class="submit-btn" id="submitBtn" disabled>Get My Build Path</button>
             </div>
-
-            <!-- Q3: Budget -->
-            <div class="question">
-                <div class="question-text">3. What's your budget for a website right now?</div>
-                <div class="options">
-                    <div class="option">
-                        <input type="radio" name="q3" id="q3a" value="0">
-                        <label for="q3a">Under $500</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q3" id="q3b" value="1">
-                        <label for="q3b">$500–$1,500</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q3" id="q3c" value="2">
-                        <label for="q3c">$1,500–$4,000</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q3" id="q3d" value="3">
-                        <label for="q3d">$4,000+</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Q4: Time -->
-            <div class="question">
-                <div class="question-text">4. How much time can you personally invest in building/maintaining your site?</div>
-                <div class="options">
-                    <div class="option">
-                        <input type="radio" name="q4" id="q4a" value="0">
-                        <label for="q4a">Lots of time - I enjoy tinkering with it myself</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q4" id="q4b" value="1">
-                        <label for="q4b">Some time, but I'd rather focus on my business</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q4" id="q4c" value="2">
-                        <label for="q4c">Limited time - my business keeps me busy</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q4" id="q4d" value="3">
-                        <label for="q4d">No time - I need this handled for me</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Q5: Importance -->
-            <div class="question">
-                <div class="question-text">5. How important is your website to winning clients?</div>
-                <div class="options">
-                    <div class="option">
-                        <input type="radio" name="q5" id="q5a" value="0">
-                        <label for="q5a">It's just a placeholder / digital business card</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q5" id="q5b" value="1">
-                        <label for="q5b">It helps, but clients come mostly from referrals/social</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q5" id="q5c" value="2">
-                        <label for="q5c">It's a key part of my client acquisition</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q5" id="q5d" value="3">
-                        <label for="q5d">It's my primary channel for winning clients</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Q6: Functionality -->
-            <div class="question">
-                <div class="question-text">6. Do you need functionality beyond what a standard template offers?</div>
-                <div class="options">
-                    <div class="option">
-                        <input type="radio" name="q6" id="q6a" value="0">
-                        <label for="q6a">No - a simple site is all I need</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q6" id="q6b" value="1">
-                        <label for="q6b">Maybe some basics (a blog, a contact form)</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q6" id="q6c" value="2">
-                        <label for="q6c">Yes - booking, client portals, or integrations</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q6" id="q6d" value="3">
-                        <label for="q6d">Yes - complex workflows, CRM integration, custom features</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Q7: Offer -->
-            <div class="question">
-                <div class="question-text">7. How established is your offer (what you sell)?</div>
-                <div class="options">
-                    <div class="option">
-                        <input type="radio" name="q7" id="q7a" value="0">
-                        <label for="q7a">Still figuring it out / validating</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q7" id="q7b" value="1">
-                        <label for="q7b">I have an offer but it's still evolving</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q7" id="q7c" value="2">
-                        <label for="q7c">Clear offer, refining my positioning</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q7" id="q7d" value="3">
-                        <label for="q7d">Well-defined, proven offer</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Q8: Goal -->
-            <div class="question">
-                <div class="question-text">8. What's your primary goal for the website in the next 12 months?</div>
-                <div class="options">
-                    <div class="option">
-                        <input type="radio" name="q8" id="q8a" value="0">
-                        <label for="q8a">Just get something online / test the waters</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q8" id="q8b" value="1">
-                        <label for="q8b">Look more professional / credible</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q8" id="q8c" value="2">
-                        <label for="q8c">Generate more inquiries and bookings</label>
-                    </div>
-                    <div class="option">
-                        <input type="radio" name="q8" id="q8d" value="3">
-                        <label for="q8d">Become the go-to authority in my niche / scale</label>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="submit-section">
-            <button class="submit-btn" id="submitBtn" disabled>Get My Build Path</button>
-        </div>
+        </form>
 
         <!-- OUTCOME A: Custom Build -->
         <div class="result-screen" id="outcomeA">
             <div class="result-badge">Your Build Path: Custom</div>
             <h2 class="result-title">You're Ready for a Custom Build</h2>
-            <p class="result-body">Your answers point one direction: you have the traffic, the revenue, and the clear offer to make a custom website pay for itself - and needs a template can't keep up with.</p>
+            <p class="result-body">Your answers point one direction: you have the traffic, the revenue, and the clear offer to make a custom website pay for itself; and needs that a mere template can't keep up with.</p>
             <p class="result-body"><strong>Why custom is your path:</strong></p>
             <ul class="result-list">
-                <li>You have traffic to convert - you're not starting from zero.</li>
-                <li>Your revenue justifies the investment.</li>
-                <li>You need booking, integrations, or features a template can't handle.</li>
-                <li>Your time is better spent running your business than wrestling a builder.</li>
+                <li><span class="dot">●</span>You have traffic to convert. You're not starting from zero.</li>
+                <li><span class="dot">●</span>Your revenue justifies the investment.</li>
+                <li><span class="dot">●</span>You need booking, integrations, or features a template can't handle.</li>
+                <li><span class="dot">●</span>Your time is better spent running your business than wrestling a builder.</li>
             </ul>
             <a href="https://trogdyne.com/qualification/" class="cta-btn" target="_blank">Take the 2-Minute Readiness Quiz →</a>
+            <br>
+            <button type="button" class="retake-btn" onclick="retakeQuiz()">Retake Quiz</button>
         </div>
 
         <!-- OUTCOME B: Optimize First -->
         <div class="result-screen" id="outcomeB">
             <div class="result-badge">Your Build Path: Optimize First</div>
             <h2 class="result-title">Get More From What You Already Have</h2>
-            <p class="result-body">You have the start of a real web presence but a full custom build wouldn't pay for itself just yet. The smarter move right now is to make what you have work harder.</p>
+            <p class="result-body">You have the start of a real web presence; but a full custom build wouldn't pay for itself just yet. The smarter move right now is to make what you have work harder.</p>
             <p class="result-body"><strong>Why optimize first:</strong></p>
             <ul class="result-list">
-                <li>You have a foundation to build on.</li>
-                <li>Your traffic or revenue isn't quite enough to justify a full custom investment.</li>
-                <li>There are quick wins hiding in what you already have.</li>
+                <li><span class="dot">●</span>You have a foundation to build on.</li>
+                <li><span class="dot">●</span>Your traffic or revenue isn't quite enough to justify a full custom investment.</li>
+                <li><span class="dot">●</span>There are quick wins hiding in what you already have.</li>
             </ul>
             <a href="https://trogdyne-resources.netlify.app/professionalism-scorecard" class="cta-btn" target="_blank">Take the Professionalism Scorecard →</a>
+            <br>
+            <button type="button" class="retake-btn" onclick="retakeQuiz()">Retake Quiz</button>
         </div>
 
         <!-- OUTCOME C: Build Foundation -->
         <div class="result-screen outcome-c" id="outcomeC">
             <div class="result-badge">Your Build Path: Build the Foundation</div>
             <h2 class="result-title">A Website Isn't Your Priority Yet - And That's Fine</h2>
-            <p class="result-body">Right now, a website investment would spend money on the wrong problem. Your bottleneck isn't your web presence; it's the foundation underneath: an offer you're still validating and an audience you're still building.</p>
+            <p class="result-body">Right now, a website investment would spend money on the wrong problem. Your bottleneck isn't your web presence — it's the foundation underneath: an offer you're still validating and an audience you're still building.</p>
             <p class="result-body">That's not a setback. It's a stage. And a site with no traffic to convert won't move you forward, no matter how good it looks.</p>
             <p class="result-body"><strong>Why waiting is the smart move:</strong></p>
             <ul class="result-list">
-                <li>A website converts the traffic you already have. With no traffic, there's nothing to convert.</li>
-                <li>Validating your offer first means your eventual site has something proven to sell.</li>
-                <li>Your time and money go further getting in front of people right now.</li>
+                <li><span class="dot">●</span>A website converts the traffic you already have. with no traffic, there's nothing to convert.</li>
+                <li><span class="dot">●</span>Validating your offer first means your eventual site has something proven to sell.</li>
+                <li><span class="dot">●</span>Your time and money go further getting in front of people right now.</li>
             </ul>
             <div class="when-ready-box">
                 <p><strong>When you'll be ready:</strong></p>
@@ -368,14 +441,153 @@
             <div class="email-capture">
                 <p>Want me to let you know when the math works in your favor?</p>
                 <form class="email-form" id="emailForm">
-                    <input type="email" placeholder="Your email address" required>
+                    <input type="email" name="email" placeholder="Your email address" required>
                     <button type="submit">Notify Me</button>
                 </form>
+                <p class="email-success" id="emailSuccess">Thanks! We'll notify you when the math works in your favor.</p>
             </div>
+            <br>
+            <button type="button" class="retake-btn" onclick="retakeQuiz()">Retake Quiz</button>
         </div>
 
         <div class="tool-footer">
             © 2026 Trogdyne. All rights reserved. | contact@trogdyne.com | trogdyne.com
+        </div>
+
+        <!-- =========================================================
+             PRINT WORKSHEET (Offline Hand-Fillable Version)
+             ========================================================= -->
+        <div class="print-worksheet">
+            <div class="pw-header">
+                <h1>Build Path Quiz</h1>
+                <p>Offline Worksheet | By Naoman Saeed, Founder of Trogdyne</p>
+            </div>
+
+            <div class="pw-section">
+                <div class="pw-section-title">Instructions</div>
+                <p style="font-size: 10pt; margin-bottom: 0.5rem;">Check the box next to the answer that best fits your current situation. Add up the point values of your selected answers to find your total score (maximum 24 points).</p>
+            </div>
+
+            <div class="pw-section">
+                <div class="pw-section-title">The 8 Questions</div>
+                
+                <div class="pw-question">
+                    <div class="pw-q-text">1. How much traffic does your website currently get?</div>
+                    <div class="pw-options">
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Under 100/mo (or no site) <span class="pw-points">(0 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> 100–500/mo <span class="pw-points">(1 pt)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> 500–2,000/mo <span class="pw-points">(2 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> 2,000+/mo <span class="pw-points">(3 pts)</span></div>
+                    </div>
+                </div>
+
+                <div class="pw-question">
+                    <div class="pw-q-text">2. Is your business generating revenue from clients?</div>
+                    <div class="pw-options">
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Not yet / idea stage <span class="pw-points">(0 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Occasional / side income <span class="pw-points">(1 pt)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Steady, want to grow <span class="pw-points">(2 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Established, scaling <span class="pw-points">(3 pts)</span></div>
+                    </div>
+                </div>
+
+                <div class="pw-question">
+                    <div class="pw-q-text">3. What's your budget for a website right now?</div>
+                    <div class="pw-options">
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Under $500 <span class="pw-points">(0 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> $500–$1,500 <span class="pw-points">(1 pt)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> $1,500–$4,000 <span class="pw-points">(2 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> $4,000+ <span class="pw-points">(3 pts)</span></div>
+                    </div>
+                </div>
+
+                <div class="pw-question">
+                    <div class="pw-q-text">4. How much time can you invest in building/maintaining it?</div>
+                    <div class="pw-options">
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Lots (I enjoy tinkering) <span class="pw-points">(0 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Some (prefer focusing on biz) <span class="pw-points">(1 pt)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Limited (biz keeps me busy) <span class="pw-points">(2 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> None (need it handled) <span class="pw-points">(3 pts)</span></div>
+                    </div>
+                </div>
+
+                <div class="pw-question">
+                    <div class="pw-q-text">5. How important is your website to winning clients?</div>
+                    <div class="pw-options">
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Just a placeholder <span class="pw-points">(0 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Helps, but mostly referrals <span class="pw-points">(1 pt)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Key part of acquisition <span class="pw-points">(2 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Primary channel <span class="pw-points">(3 pts)</span></div>
+                    </div>
+                </div>
+
+                <div class="pw-question">
+                    <div class="pw-q-text">6. Do you need functionality beyond a standard template?</div>
+                    <div class="pw-options">
+                        <div class="pw-opt"><span class="pw-checkbox"></span> No, simple is fine <span class="pw-points">(0 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Basics (blog, form) <span class="pw-points">(1 pt)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Booking, portals, integrations <span class="pw-points">(2 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Complex workflows/CRM <span class="pw-points">(3 pts)</span></div>
+                    </div>
+                </div>
+
+                <div class="pw-question">
+                    <div class="pw-q-text">7. How established is your offer (what you sell)?</div>
+                    <div class="pw-options">
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Still figuring it out <span class="pw-points">(0 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Evolving <span class="pw-points">(1 pt)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Clear, refining positioning <span class="pw-points">(2 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Well-defined, proven <span class="pw-points">(3 pts)</span></div>
+                    </div>
+                </div>
+
+                <div class="pw-question">
+                    <div class="pw-q-text">8. Primary goal for the website in the next 12 months?</div>
+                    <div class="pw-options">
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Just get something online <span class="pw-points">(0 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Look professional <span class="pw-points">(1 pt)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Generate inquiries <span class="pw-points">(2 pts)</span></div>
+                        <div class="pw-opt"><span class="pw-checkbox"></span> Become authority / scale <span class="pw-points">(3 pts)</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pw-section">
+                <div class="pw-section-title">Calculate Your Score</div>
+                <p style="font-size: 11pt; margin-bottom: 1rem;">My Total Score: <span class="pw-blank-line"></span> / 24</p>
+                
+                <div class="pw-gate-note">
+                    <strong>Traffic Gate Rule:</strong> If you scored 0 points on Question 1 (Under 100 visitors/mo), your result is automatically capped at Path B (Optimize First), regardless of your total score. A custom build requires traffic to convert.
+                </div>
+
+                <div class="pw-scoring">
+                    <div class="pw-score-box">
+                        <strong>18–24 Points</strong>
+                        Path A: Custom Build<br>
+                        <span style="font-size: 8.5pt; color: #57534e;">(Assuming Q1 > 0)</span>
+                    </div>
+                    <div class="pw-score-box">
+                        <strong>10–17 Points</strong>
+                        Path B: Optimize First
+                    </div>
+                    <div class="pw-score-box">
+                        <strong>0–9 Points</strong>
+                        Path C: Build Foundation
+                    </div>
+                </div>
+            </div>
+
+            <div class="pw-section">
+                <div class="pw-section-title">My Result & Next Steps</div>
+                <p style="font-size: 11pt; line-height: 2.2;">
+                    My Build Path is: <span class="pw-blank-line" style="min-width: 200px;"></span><br><br>
+                    My immediate next step is: <span class="pw-blank-line" style="min-width: 250px;"></span>
+                </p>
+            </div>
+
+            <div class="pw-footer">
+                Interactive version: trogdyne-resources.netlify.app/build-path-quiz | © 2026 Trogdyne | contact@trogdyne.com
+            </div>
         </div>
     </div>
 
@@ -384,10 +596,13 @@
             const submitBtn = document.getElementById('submitBtn');
             const scoreDisplay = document.getElementById('scoreDisplay');
             const questionsSection = document.getElementById('questionsSection');
+            const submitSection = document.getElementById('submitSection');
             const outcomeA = document.getElementById('outcomeA');
             const outcomeB = document.getElementById('outcomeB');
             const outcomeC = document.getElementById('outcomeC');
             const emailForm = document.getElementById('emailForm');
+            const emailSuccess = document.getElementById('emailSuccess');
+            const quizForm = document.getElementById('quizForm');
 
             const allRadios = document.querySelectorAll('input[type="radio"]');
             const totalQuestions = 8;
@@ -419,8 +634,7 @@
                 // Determine outcome
                 let outcome;
                 if (trafficGate) {
-                    // Traffic gate: cap at Outcome B regardless of score
-                    outcome = 'B';
+                    outcome = 'B'; // Traffic gate caps at B
                 } else if (score >= 18) {
                     outcome = 'A';
                 } else if (score >= 10) {
@@ -431,29 +645,47 @@
 
                 // Hide questions, show result
                 questionsSection.style.display = 'none';
-                submitBtn.parentElement.style.display = 'none';
+                submitSection.style.display = 'none';
                 document.querySelector('.score-tracker').style.display = 'none';
 
-                if (outcome === 'A') {
-                    outcomeA.classList.add('visible');
-                } else if (outcome === 'B') {
-                    outcomeB.classList.add('visible');
-                } else {
-                    outcomeC.classList.add('visible');
-                }
+                if (outcome === 'A') outcomeA.classList.add('visible');
+                else if (outcome === 'B') outcomeB.classList.add('visible');
+                else outcomeC.classList.add('visible');
 
-                // Scroll to top
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
 
-            // Email form (placeholder - no actual backend yet)
+            // Email form inline success
             emailForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                const email = this.querySelector('input[type="email"]').value;
-                alert(`Thanks! We'll notify ${email} when the math works in your favor.`);
-                this.reset();
+                this.style.display = 'none';
+                emailSuccess.style.display = 'block';
             });
         });
+
+        // Retake Quiz Function
+        function retakeQuiz() {
+            document.getElementById('quizForm').reset();
+            document.getElementById('scoreDisplay').textContent = '0';
+            document.getElementById('submitBtn').disabled = true;
+            
+            document.getElementById('questionsSection').style.display = 'block';
+            document.getElementById('submitSection').style.display = 'block';
+            document.querySelector('.score-tracker').style.display = 'block';
+            
+            document.getElementById('outcomeA').classList.remove('visible');
+            document.getElementById('outcomeB').classList.remove('visible');
+            document.getElementById('outcomeC').classList.remove('visible');
+            
+            // Reset email form if it was hidden
+            const emailForm = document.getElementById('emailForm');
+            if(emailForm) {
+                emailForm.style.display = 'flex';
+                document.getElementById('emailSuccess').style.display = 'none';
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     </script>
 </body>
 </html>
