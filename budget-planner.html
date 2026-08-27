@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Budget Planner | Trogdyne</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #fafaf9;
+            --color-surface: #ffffff;
+            --color-text: #1c1917;
+            --color-text-muted: #57534e;
+            --color-border: #e7e5e4;
+            --color-primary: #5f7c6b;
+            --color-primary-hover: #4a6355;
+            --color-accent: #c9a882;
+            --color-accent-hover: #b89570;
+            --font-heading: 'Space Grotesk', system-ui, sans-serif;
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-full: 9999px;
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-body); color: var(--color-text); background: var(--color-bg); line-height: 1.6; padding: 1.5rem; min-height: 100vh; }
+        .tool-container { max-width: 900px; margin: 0 auto; background: var(--color-surface); padding: 2rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); }
+
+        /* Header */
+        .tool-header { text-align: center; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--color-primary); }
+        .tool-header h1 { font-family: var(--font-heading); font-size: clamp(1.75rem, 4vw, 2.5rem); color: var(--color-primary); margin-bottom: 0.5rem; line-height: 1.2; }
+        .tool-header h2 { font-family: var(--font-heading); font-size: clamp(1rem, 2vw, 1.2rem); font-weight: 500; color: var(--color-text-muted); margin-bottom: 0.75rem; }
+        .tool-header .author { font-size: 0.9rem; color: var(--color-text-muted); font-style: italic; }
+
+        /* Instructions */
+        .instructions { background: #f0f4f1; padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 2rem; border-left: 4px solid var(--color-primary); font-size: 0.95rem; }
+        .instructions strong { color: var(--color-primary); }
+
+        /* Running costs note */
+        .running-note { font-size: 0.9rem; color: var(--color-text-muted); background: #f7f3ec; border-left: 4px solid var(--color-accent); padding: 0.9rem 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; }
+        .sub-label { font-family: var(--font-heading); font-size: 1rem; font-weight: 600; margin: 1.25rem 0 0.6rem 0; }
+
+        /* Section labels */
+        .section-label { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 600; color: var(--color-primary); margin: 2rem 0 1rem 0; }
+
+        /* Budget input */
+        .budget-input-wrap { display: flex; align-items: center; gap: 0.5rem; max-width: 320px; }
+        .budget-input-wrap .currency { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 600; color: var(--color-text-muted); }
+        .budget-input-wrap input { flex: 1; padding: 0.85rem 1rem; border: 2px solid var(--color-border); border-radius: var(--radius-md); font-size: 1.2rem; font-family: var(--font-body); }
+        .budget-input-wrap input:focus { outline: none; border-color: var(--color-primary); }
+
+        /* Radio & checkbox options */
+        .options { display: flex; flex-direction: column; gap: 0.75rem; }
+        .option { position: relative; }
+        .option input[type="radio"], .option input[type="checkbox"] { position: absolute; opacity: 0; pointer-events: none; }
+        .option label { display: block; padding: 0.9rem 1.1rem; border: 2px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; font-size: 0.95rem; line-height: 1.5; transition: all 0.2s ease; background: white; }
+        .option label:hover { border-color: var(--color-primary); }
+        .option input:checked + label { border-color: var(--color-primary); background: #f0f4f1; color: var(--color-primary-hover); font-weight: 500; }
+        .option input:focus-visible + label { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+
+        /* Feature option with guidance */
+        .feature-option label { padding: 1rem 1.1rem; }
+        .feature-name { font-weight: 600; font-size: 1rem; display: block; margin-bottom: 0.4rem; }
+        .feature-guidance { font-size: 0.85rem; color: var(--color-text-muted); line-height: 1.5; display: block; }
+        .feature-guidance .need { color: var(--color-primary-hover); }
+        .option input:checked + label .feature-guidance { color: var(--color-text-muted); }
+
+        /* Submit button */
+        .submit-section { text-align: center; margin-top: 2rem; }
+        .submit-btn, .retake-btn { display: inline-block; background: var(--color-primary); color: white; border: none; padding: 1.1rem 2.5rem; border-radius: var(--radius-full); font-family: var(--font-heading); font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: all 0.2s ease; }
+        .submit-btn:hover, .retake-btn:hover { background: var(--color-primary-hover); transform: translateY(-2px); }
+        .submit-btn:disabled { background: #a8a29e; cursor: not-allowed; transform: none; }
+        .retake-btn { background: transparent; color: var(--color-primary); border: 2px solid var(--color-primary); padding: 0.8rem 2rem; font-size: 1rem; margin-top: 1.5rem; }
+        .retake-btn:hover { background: #f0f4f1; }
+
+        /* Result screen */
+        .result-screen { display: none; padding: 2rem 0; }
+        .result-screen.visible { display: block; }
+        .result-badge { display: inline-block; background: var(--color-accent); color: var(--color-text); font-family: var(--font-heading); font-weight: 700; font-size: 0.9rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.5rem 1.2rem; border-radius: var(--radius-full); margin-bottom: 1.5rem; }
+        .result-title { font-family: var(--font-heading); font-size: clamp(1.5rem, 3.5vw, 2rem); font-weight: 700; line-height: 1.2; margin-bottom: 1.25rem; text-align: center; }
+        .result-body { font-size: 1rem; color: var(--color-text-muted); line-height: 1.7; margin-bottom: 1.5rem; max-width: 700px; margin-left: auto; margin-right: auto; text-align: center; }
+
+        /* Package card in result */
+        .package-card { background: var(--color-bg); border: 1px solid var(--color-border); border-top: 6px solid var(--color-primary); border-radius: var(--radius-lg); padding: 1.5rem; margin: 1.5rem auto; max-width: 600px; }
+        .package-name { font-family: var(--font-heading); font-size: 1.4rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.25rem; }
+        .package-range { font-size: 0.95rem; color: var(--color-text-muted); margin-bottom: 0.5rem; }
+        .package-audience { font-size: 0.9rem; color: var(--color-text-muted); font-style: italic; margin-bottom: 1rem; }
+        .package-features { list-style: none; }
+        .package-features li { padding: 0.4rem 0; padding-left: 1.5rem; position: relative; font-size: 0.95rem; color: var(--color-text-muted); }
+        .package-features li .dot { position: absolute; left: 0; color: var(--color-primary); font-weight: 700; }
+
+        /* Cost breakdown */
+        .cost-breakdown { background: #f0f4f1; border: 1px solid #d9e2dc; border-radius: var(--radius-md); padding: 1.25rem; margin: 1.5rem auto; max-width: 600px; }
+        .cost-line { display: flex; justify-content: space-between; padding: 0.4rem 0; font-size: 0.95rem; }
+        .cost-line.total { border-top: 2px solid var(--color-primary); margin-top: 0.5rem; padding-top: 0.75rem; font-weight: 700; font-family: var(--font-heading); font-size: 1.05rem; color: var(--color-primary); }
+
+        /* CTA button */
+        .cta-btn { display: inline-block; background: var(--color-primary); color: white; text-decoration: none; padding: 1rem 2rem; border-radius: var(--radius-full); font-family: var(--font-heading); font-weight: 600; font-size: 1.05rem; transition: all 0.2s ease; margin-top: 1rem; }
+        .cta-btn:hover { background: var(--color-primary-hover); transform: translateY(-2px); }
+        .cta-center { text-align: center; }
+
+        /* Footer */
+        .footer-link {
+            text-decoration: none;
+            color: var(--color-primary);
+        }
+        .tool-footer { text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border); font-size: 0.8rem; color: var(--color-text-muted); }
+
+        /* Print button */
+        .print-btn { position: fixed; bottom: 2rem; right: 2rem; background: var(--color-accent); color: var(--color-text); border: none; padding: 1rem 1.5rem; border-radius: var(--radius-full); font-family: var(--font-heading); font-weight: 600; cursor: pointer; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 0.5rem; z-index: 50; }
+        .print-btn:hover { transform: translateY(-2px); background: var(--color-accent-hover); }
+
+        /* Print worksheet */
+        .print-worksheet { display: none; }
+
+        @media (max-width: 767px) {
+            .cost-line { font-size: 0.85rem; }
+        }
+
+        @media print {
+            @page { size: A4; margin: 1.5cm; }
+            body { background: white; padding: 0; font-size: 11pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .tool-container { box-shadow: none; padding: 0; max-width: 100%; border-radius: 0; }
+            .print-btn, .submit-section, #plannerForm, .result-screen, .instructions, .tool-footer, .tool-header { display: none !important; }
+            .print-worksheet { display: block !important; }
+            .pw-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #5f7c6b; }
+            .pw-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 22pt; color: #5f7c6b; margin-bottom: 0.25rem; }
+            .pw-header p { font-size: 10pt; color: #57534e; }
+            .pw-section { margin-bottom: 1.25rem; page-break-inside: avoid; }
+            .pw-section-title { font-family: 'Space Grotesk', sans-serif; font-size: 13pt; font-weight: 700; color: #5f7c6b; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #e7e5e4; }
+            .pw-table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+            .pw-table th, .pw-table td { border: 1px solid #d6d3d1; padding: 6px 8px; text-align: left; }
+            .pw-table th { background: #f0f4f1; font-family: 'Space Grotesk', sans-serif; }
+            .pw-blank-line { border-bottom: 1px solid #1c1917; display: inline-block; min-width: 150px; height: 1.2em; vertical-align: bottom; }
+            .pw-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid #e7e5e4; font-size: 8pt; color: #78716C; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Save as PDF / Print
+    </button>
+
+    <div class="tool-container">
+        <div class="tool-header">
+            <h1>Website Budget Planner</h1>
+            <h2>What Should You Actually Budget? And What Will It Get You?</h2>
+            <p class="author">By Naoman Saeed, Founder of Trogdyne</p>
+        </div>
+
+        <div class="instructions">
+            <p><strong>How this works:</strong> Enter your budget and tell us what you need. We'll show you which build package fits, what it realistically costs (including Year-1 running costs), and whether your number is enough. If it isn't, we'll tell you honestly and point you to the right next step.</p>
+        </div>
+
+        <form id="plannerForm">
+            <!-- PHASE 1: BUDGET -->
+            <div class="section-label">1. What's your total budget?</div>
+            <div class="budget-input-wrap">
+                <span class="currency">$</span>
+                <input type="number" id="budget" min="0" step="100" placeholder="e.g. 2500" required>
+            </div>
+
+            <!-- PHASE 2: CURRENT SETUP -->
+            <div class="section-label">2. What's your current situation?</div>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" name="setup" id="setup-scratch" value="scratch" required>
+                    <label for="setup-scratch">I'm starting from scratch (no website yet)</label>
+                </div>
+                <div class="option">
+                    <input type="radio" name="setup" id="setup-redesign" value="redesign">
+                    <label for="setup-redesign">I have a website that needs a redesign or rebuild</label>
+                </div>
+            </div>
+
+            <!-- PHASE 3: FEATURES -->
+            <div class="section-label">3. What do you need? <span style="font-weight:400; font-size:0.9rem; color:var(--color-text-muted);">(check all that apply)</span></div>
+            <div class="options">
+                <div class="option feature-option">
+                    <input type="checkbox" id="feat-booking">
+                    <label for="feat-booking">
+                        <span class="feature-name">Booking / Scheduling Integration</span>
+                        <span class="feature-guidance"><span class="need">You need this if</span> clients book time slots with you (coaches, therapists, consultants). <span class="need">You don't if</span> a contact form covers your workflow.</span>
+                    </label>
+                </div>
+                <div class="option feature-option">
+                    <input type="checkbox" id="feat-copywriting">
+                    <label for="feat-copywriting">
+                        <span class="feature-name">Professional Copywriting</span>
+                        <span class="feature-guidance"><span class="need">You need this if</span> you lack time or confidence to write your own copy. <span class="need">You don't if</span> you already have clear, ready copy.</span>
+                    </label>
+                </div>
+                <div class="option feature-option">
+                    <input type="checkbox" id="feat-branding">
+                    <label for="feat-branding">
+                        <span class="feature-name">Branding / Logo Design</span>
+                        <span class="feature-guidance"><span class="need">You need this if</span> you don't have a logo or brand guidelines yet. <span class="need">You don't if</span> you already have branding you're happy with.</span>
+                    </label>
+                </div>
+                <div class="option feature-option">
+                    <input type="checkbox" id="feat-portal">
+                    <label for="feat-portal">
+                        <span class="feature-name">Client Portal or CRM Setup</span>
+                        <span class="feature-guidance"><span class="need">You need this if</span> you deliver ongoing client work or manage many leads. <span class="need">You don't if</span> you have a simple contact-and-book flow.</span>
+                    </label>
+                </div>
+                <div class="option feature-option">
+                    <input type="checkbox" id="feat-ecommerce">
+                    <label for="feat-ecommerce">
+                        <span class="feature-name">E-commerce / Online Payments</span>
+                        <span class="feature-guidance"><span class="need">You need this if</span> you sell products online. <span class="need">You don't if</span> you sell services only.</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- PHASE 4: RUNNING COSTS & SUPPORT -->
+            <div class="section-label">4. Running costs & support</div>
+            <p class="running-note">Every website has two unavoidable costs paid to providers: <strong>domain (~$15/yr)</strong> and <strong>hosting (~$60–$180/yr)</strong>. We include ~$150/yr for these automatically in the estimate. The questions below are only about <em>who does the work</em>.</p>
+
+            <div class="sub-label">Who sets up the backend? (domain, hosting, SSL, professional email)</div>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" name="setup-backend" id="backend-you" value="you" required>
+                    <label for="backend-you">You handle it - $150 one-time <span style="display:block; font-size:0.85rem; color:var(--color-text-muted);">We purchase the domain, set up hosting, SSL, DNS, and professional email</span></label>
+                </div>
+                <div class="option">
+                    <input type="radio" name="setup-backend" id="backend-self" value="self">
+                    <label for="backend-self">I'll set it up myself - $0</label>
+                </div>
+            </div>
+
+            <div class="sub-label">Who handles ongoing maintenance?</div>
+            <div class="options">
+                <div class="option">
+                    <input type="radio" name="maintenance" id="maint-you" value="you" required>
+                    <label for="maint-you">You handle it - $99/month <span style="display:block; font-size:0.85rem; color:var(--color-text-muted);">Backups, security, updates, and 1 hour of minor tweaks, so you never pay hourly for small fixes</span></label>
+                </div>
+                <div class="option">
+                    <input type="radio" name="maintenance" id="maint-self" value="self">
+                    <label for="maint-self">I'll handle updates myself - $0</label>
+                </div>
+            </div>
+
+            <div class="submit-section">
+                <button type="button" class="submit-btn" id="submitBtn" disabled>Plan My Budget</button>
+            </div>
+        </form>
+
+        <!-- RESULT SCREEN -->
+        <div class="result-screen" id="resultScreen">
+            <div class="cta-center">
+                <div class="result-badge" id="resultBadge"></div>
+            </div>
+            <h2 class="result-title" id="resultTitle"></h2>
+            <p class="result-body" id="resultBody"></p>
+            <div id="packageCardContainer"></div>
+            <div id="costBreakdownContainer"></div>
+            <p class="result-body" id="resultNote"></p>
+            <div class="cta-center">
+                <a href="#" class="cta-btn" id="resultCta" target="_blank"></a>
+            </div>
+            <div class="cta-center">
+                <button type="button" class="retake-btn" onclick="retakePlanner()">Start Over</button>
+            </div>
+        </div>
+
+        <div class="tool-footer">
+            © 2026 Trogdyne. All rights reserved. | contact@trogdyne.com | <a class="footer-link" href="https://trogdyne.com" target="_blank" rel="noopener">trogdyne.com</a>
+        </div>
+
+        <!-- PRINT WORKSHEET -->
+        <div class="print-worksheet">
+            <div class="pw-header">
+                <h1>Website Budget Planner</h1>
+                <p>Offline Worksheet | By Naoman Saeed, Founder of Trogdyne</p>
+            </div>
+
+            <div class="pw-section">
+                <div class="pw-section-title">2026 Market Rate Reference</div>
+                <table class="pw-table">
+                    <tr><th>Tier</th><th>One-Time Build</th><th>Best For</th></tr>
+                    <tr><td>DIY Builder (Wix/Squarespace)</td><td>$0 + ~$240–$470/yr fees</td><td>Pre-revenue, simple needs</td></tr>
+                    <tr><td>Budget Freelancer</td><td>$500–$1,500</td><td>Small budget, simple needs</td></tr>
+                    <tr><td>Professional / Semi-Custom</td><td>$1,500–$4,000</td><td>Serious service businesses</td></tr>
+                    <tr><td>Agency / Studio</td><td>$4,000–$15,000+</td><td>Complex needs, big budgets</td></tr>
+                </table>
+            </div>
+
+            <div class="pw-section">
+                <div class="pw-section-title">Your Budget Plan</div>
+                <p style="font-size:11pt; line-height:2.2;">
+                    My total budget: $<span class="pw-blank-line" style="min-width:100px;"></span><br>
+                    Recommended package: <span class="pw-blank-line" style="min-width:200px;"></span><br>
+                    Add-ons I need: <span class="pw-blank-line" style="min-width:250px;"></span><br>
+                    Estimated Year-1 running costs: $<span class="pw-blank-line" style="min-width:100px;"></span>
+                </p>
+            </div>
+
+            <div class="pw-section">
+                <div class="pw-section-title">Cost Guide</div>
+                <table class="pw-table">
+                    <tr><th>Item</th><th>Typical Cost</th></tr>
+                    <tr><td>Domain (mandatory)</td><td>~$15/year</td></tr>
+                    <tr><td>Hosting (mandatory)</td><td>~$60–$180/year</td></tr>
+                    <tr><td>Backend Setup - domain, hosting, SSL, email (one-time)</td><td>$150</td></tr>
+                    <tr><td>Hands-off Maintenance</td><td>$99/month</td></tr>
+                    <tr><td>Booking / Scheduling</td><td>~$400 (included in Growth package)</td></tr>
+                    <tr><td>Professional Copywriting</td><td>~$1,000</td></tr>
+                    <tr><td>Branding / Logo</td><td>~$800</td></tr>
+                    <tr><td>Client Portal / CRM Setup</td><td>~$2,000 (Premium tier)</td></tr>
+                    <tr><td>E-commerce (Shopify/WooCommerce)</td><td>~$3,000 (Premium tier)</td></tr>
+                </table>
+            </div>
+
+            <div class="pw-footer">
+                Interactive version: trogdyne-resources.netlify.app/budget-planner | © 2026 Trogdyne | contact@trogdyne.com
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const packages = {
+            essential: {
+                name: 'The Essential Website',
+                range: '$750 – $1,500',
+                base: 1125,
+                audience: 'Perfect for solo practitioners and new founders',
+                features: [
+                    '3–5 Custom Pages (Home, About, etc.)',
+                    'Bespoke Design',
+                    'Mobile-Responsive & Speed Optimized',
+                    'Basic SEO Foundation',
+                    'Secure Contact Form Integration'
+                ]
+            },
+            growth: {
+                name: 'The Growth Site',
+                range: '$1,500 – $3,000',
+                base: 2250,
+                audience: 'For established studios and multi-service businesses',
+                features: [
+                    'Everything from the Essential pack',
+                    '5–8 Custom Pages + Blog Setup',
+                    'Advanced Animations & Interactivity',
+                    'Lead Magnet & Email Newsletter',
+                    'Testimonial / Review Showcase',
+                    'Booking System Integration'
+                ]
+            },
+            premium: {
+                name: 'The Premium Build',
+                range: '$3,000+',
+                base: 4000,
+                audience: 'For scaling brands with complex needs',
+                features: [
+                    'Everything from the Growth pack',
+                    'Unlimited Pages & Custom Functionality',
+                    'Client Portals or Membership Areas',
+                    'Advanced Zapier Automation Workflows',
+                    'Multi-language Support',
+                    'Priority Support & Expedited Turnaround'
+                ]
+            }
+        };
+
+        const submitBtn = document.getElementById('submitBtn');
+        const budgetInput = document.getElementById('budget');
+
+        function checkReady() {
+            const budgetOk = parseFloat(budgetInput.value) > 0;
+            const setupOk = document.querySelector('input[name="setup"]:checked') !== null;
+            const backendOk = document.querySelector('input[name="setup-backend"]:checked') !== null;
+            const maintOk = document.querySelector('input[name="maintenance"]:checked') !== null;
+            submitBtn.disabled = !(budgetOk && setupOk && backendOk && maintOk);
+        }
+
+        budgetInput.addEventListener('input', checkReady);
+        document.querySelectorAll('input[name="setup"], input[name="setup-backend"], input[name="maintenance"]').forEach(r => r.addEventListener('change', checkReady));
+
+        submitBtn.addEventListener('click', function() {
+            const budget = parseFloat(budgetInput.value) || 0;
+            const features = {
+                booking: document.getElementById('feat-booking').checked,
+                copywriting: document.getElementById('feat-copywriting').checked,
+                branding: document.getElementById('feat-branding').checked,
+                portal: document.getElementById('feat-portal').checked,
+                ecommerce: document.getElementById('feat-ecommerce').checked
+            };
+            const backend = document.querySelector('input[name="setup-backend"]:checked').value;
+            const maintenance = document.querySelector('input[name="maintenance"]:checked').value;
+
+            // Determine desired package
+            let desiredKey;
+            if (features.ecommerce || features.portal) desiredKey = 'premium';
+            else if (features.booking) desiredKey = 'growth';
+            else desiredKey = 'essential';
+
+            const desired = packages[desiredKey];
+
+            // Add-ons
+            let addons = 0;
+            let addonLines = [];
+            if (features.copywriting) { addons += 1000; addonLines.push({label: 'Professional Copywriting', cost: 1000}); }
+            if (features.branding) { addons += 800; addonLines.push({label: 'Branding / Logo', cost: 800}); }
+
+            // Running costs
+            const mandatoryRunning = 150;                        // domain + hosting, always
+            const setupCost  = (backend === 'you') ? 150 : 0;    // one-time
+            const maintCost  = (maintenance === 'you') ? 1188 : 0; // Year 1
+
+            const runningLines = [{label: 'Domain + hosting (Year 1, paid to providers)', cost: mandatoryRunning}];
+            if (setupCost) runningLines.push({label: 'Backend setup (one-time)', cost: setupCost});
+            if (maintCost) runningLines.push({label: 'Hands-off maintenance (Year 1)', cost: maintCost});
+
+            const running = mandatoryRunning + setupCost + maintCost;
+            const total = desired.base + addons + running;
+
+            // Determine verdict
+            let verdict;
+            if (budget < 750) verdict = 'D';
+            else if (budget >= total) verdict = 'A';
+            else if (budget >= total * 0.7) verdict = 'B';
+            else verdict = 'C';
+
+            // Affordable package (for verdict C)
+            let affordableKey = null;
+            if (verdict === 'C') {
+                if (budget >= 3000) affordableKey = 'premium';
+                else if (budget >= 1500) affordableKey = 'growth';
+                else affordableKey = 'essential';
+            }
+
+            renderResult(verdict, { budget, desired, desiredKey, addons, addonLines, runningLines, total, affordableKey, features });
+        });
+
+        function renderResult(verdict, d) {
+            const screen = document.getElementById('resultScreen');
+            const badge = document.getElementById('resultBadge');
+            const title = document.getElementById('resultTitle');
+            const body = document.getElementById('resultBody');
+            const pkgContainer = document.getElementById('packageCardContainer');
+            const costContainer = document.getElementById('costBreakdownContainer');
+            const note = document.getElementById('resultNote');
+            const cta = document.getElementById('resultCta');
+
+            pkgContainer.innerHTML = '';
+            costContainer.innerHTML = '';
+            note.textContent = '';
+
+            const readinessUrl = 'https://trogdyne.com/qualification/';
+            const buildPathUrl = 'https://trogdyne-resources.netlify.app/build-path-quiz';
+
+            if (verdict === 'A') {
+                badge.textContent = 'Ready to Build';
+                title.textContent = 'Your Budget Supports This Build';
+                body.textContent = `Your $${d.budget.toLocaleString()} budget comfortably supports ${d.desired.name}. Here's your realistic Year-1 investment breakdown.`;
+                renderPackageCard(pkgContainer, d.desired);
+                renderCostBreakdown(costContainer, d);
+                note.textContent = 'This estimate reflects current 2026 market rates. Your final scope will be confirmed together before any commitment.';
+                cta.textContent = 'Take the 2-Minute Readiness Quiz →';
+                cta.href = readinessUrl;
+            }
+            else if (verdict === 'B') {
+                badge.textContent = 'In the Right Range';
+                title.textContent = "You're Close - Let's Fine-Tune";
+                body.textContent = `Your $${d.budget.toLocaleString()} budget covers the core of ${d.desired.name}. We can fine-tune add-ons and scope together to fit your number.`;
+                renderPackageCard(pkgContainer, d.desired);
+                renderCostBreakdown(costContainer, d);
+                note.textContent = "You're in the right range. The exact scope is something we nail down together - no pressure, no commitment.";
+                cta.textContent = 'Take the 2-Minute Readiness Quiz →';
+                cta.href = readinessUrl;
+            }
+            else if (verdict === 'C') {
+                const affordable = packages[d.affordableKey];
+                badge.textContent = 'Finding the Right Fit';
+                title.textContent = "Let's Match Your Budget to the Right Build";
+                body.textContent = `The features you selected point to ${d.desired.name} (${d.desired.range}), which is above your $${d.budget.toLocaleString()} budget. But here's the good news: your budget is a strong fit for ${affordable.name}.`;
+                renderPackageCard(pkgContainer, affordable);
+                note.textContent = 'You can start with this package and add the other features later as you grow. Starting right is better than over-extending.';
+                cta.textContent = 'Take the 2-Minute Readiness Quiz →';
+                cta.href = readinessUrl;
+            }
+            else { // verdict D
+                badge.textContent = 'Not the Right Time Yet';
+                title.textContent = "A Build Isn't the Right Move Yet";
+                if (d.budget >= 500) {
+                    body.textContent = `At $${d.budget.toLocaleString()}, a professional custom build isn't the right investment yet - but you can still get a solid start with a well-set-up template or a budget freelancer. Let's figure out which stage you're in.`;
+                } else {
+                    body.textContent = `At $${d.budget.toLocaleString()}, the smartest move is to focus on your foundation first - your offer and your audience. A website converts traffic; it doesn't create it. Let's find your path.`;
+                }
+                note.textContent = "This isn't a setback. It's a stage. Building too early spends money on the wrong problem.";
+                cta.textContent = 'Take the Build Path Quiz →';
+                cta.href = buildPathUrl;
+            }
+
+            document.getElementById('plannerForm').style.display = 'none';
+            screen.classList.add('visible');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderPackageCard(container, pkg) {
+            const card = document.createElement('div');
+            card.className = 'package-card';
+            let featuresHtml = pkg.features.map(f => `<li><span class="dot">●</span>${f}</li>`).join('');
+            card.innerHTML = `
+                <div class="package-name">${pkg.name}</div>
+                <div class="package-range">${pkg.range}</div>
+                <div class="package-audience">${pkg.audience}</div>
+                <ul class="package-features">${featuresHtml}</ul>
+            `;
+            container.appendChild(card);
+        }
+
+        function renderCostBreakdown(container, d) {
+            const wrap = document.createElement('div');
+            wrap.className = 'cost-breakdown';
+            let lines = `<div class="cost-line"><span>${d.desired.name} (base)</span><span>$${d.desired.base.toLocaleString()}</span></div>`;
+            d.addonLines.forEach(a => {
+                lines += `<div class="cost-line"><span>+ ${a.label}</span><span>$${a.cost.toLocaleString()}</span></div>`;
+            });
+            d.runningLines.forEach(r => {
+                lines += `<div class="cost-line"><span>${r.label}</span><span>$${r.cost.toLocaleString()}</span></div>`;
+            });
+            lines += `<div class="cost-line total"><span>Realistic Year-1 Investment</span><span>$${d.total.toLocaleString()}</span></div>`;
+            wrap.innerHTML = lines;
+            container.appendChild(wrap);
+        }
+
+        function retakePlanner() {
+            document.getElementById('plannerForm').reset();
+            document.getElementById('resultScreen').classList.remove('visible');
+            document.getElementById('plannerForm').style.display = 'block';
+            submitBtn.disabled = true;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
